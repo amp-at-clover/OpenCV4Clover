@@ -120,7 +120,7 @@ void debugShowFPS()
     mFps =  ((mFrameCount - mLastFrameCount) * float(s2ns(1))) / diff;
     mLastFpsTime = now;
     mLastFrameCount = mFrameCount;
-    LOGI("### Camera FPS ### [%d] Frames, %.2f FPS", mFrameCount, mFps);
+    //LOGI("### Camera FPS ### [%d] Frames, %.2f FPS", mFrameCount, mFps);
 }
 
 class CameraHandler: public CameraListener
