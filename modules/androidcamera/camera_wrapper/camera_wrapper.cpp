@@ -285,7 +285,7 @@ public:
 #endif
                           )
     {
-        debugShowFPS();
+        //debugShowFPS();
 
         if ( msgType & CAMERA_MSG_PREVIEW_FRAME )
         {
