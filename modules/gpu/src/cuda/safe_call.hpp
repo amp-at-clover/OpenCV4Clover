@@ -43,37 +43,30 @@
 #ifndef __OPENCV_CUDA_SAFE_CALL_HPP__
 #define __OPENCV_CUDA_SAFE_CALL_HPP__
 
-#include "cvconfig.h"
-
 #include <cuda_runtime_api.h>
-
-#ifdef HAVE_CUFFT
-#   include <cufft.h>
-#endif
-
-#ifdef HAVE_CUBLAS
-#   include <cublas.h>
-#endif
-
+#include <cufft.h>
+#include <cublas.h>
 #include "NCV.hpp"
 
-namespace cv { namespace gpu {
+#if defined(__GNUC__)
+    #define nppSafeCall(expr)  ___nppSafeCall(expr, __FILE__, __LINE__, __func__)
+    #define ncvSafeCall(expr)  ___ncvSafeCall(expr, __FILE__, __LINE__, __func__)
+    #define cufftSafeCall(expr)  ___cufftSafeCall(expr, __FILE__, __LINE__, __func__)
+    #define cublasSafeCall(expr)  ___cublasSafeCall(expr, __FILE__, __LINE__, __func__)
+#else /* defined(__CUDACC__) || defined(__MSVC__) */
+    #define nppSafeCall(expr)  ___nppSafeCall(expr, __FILE__, __LINE__)
+    #define ncvSafeCall(expr)  ___ncvSafeCall(expr, __FILE__, __LINE__)
+    #define cufftSafeCall(expr)  ___cufftSafeCall(expr, __FILE__, __LINE__)
+    #define cublasSafeCall(expr)  ___cublasSafeCall(expr, __FILE__, __LINE__)
+#endif
 
-void nppError(int err, const char *file, const int line, const char *func = "");
-
-void ncvError(int err, const char *file, const int line, const char *func = "");
-
-#ifdef HAVE_CUFFT
+namespace cv { namespace gpu
+{
+    void nppError(int err, const char *file, const int line, const char *func = "");
+    void ncvError(int err, const char *file, const int line, const char *func = "");
     void cufftError(int err, const char *file, const int line, const char *func = "");
-#endif
-
-#ifdef HAVE_CUBLAS
     void cublasError(int err, const char *file, const int line, const char *func = "");
-#endif
-
 }}
-
-// nppSafeCall
 
 static inline void ___nppSafeCall(int err, const char *file, const int line, const char *func = "")
 {
@@ -81,56 +74,22 @@ static inline void ___nppSafeCall(int err, const char *file, const int line, con
         cv::gpu::nppError(err, file, line, func);
 }
 
-#if defined(__GNUC__)
-    #define nppSafeCall(expr)  ___nppSafeCall(expr, __FILE__, __LINE__, __func__)
-#else
-    #define nppSafeCall(expr)  ___nppSafeCall(expr, __FILE__, __LINE__)
-#endif
-
-// ncvSafeCall
-
 static inline void ___ncvSafeCall(int err, const char *file, const int line, const char *func = "")
 {
     if (NCV_SUCCESS != err)
         cv::gpu::ncvError(err, file, line, func);
 }
 
-#if defined(__GNUC__)
-    #define ncvSafeCall(expr)  ___ncvSafeCall(expr, __FILE__, __LINE__, __func__)
-#else
-    #define ncvSafeCall(expr)  ___ncvSafeCall(expr, __FILE__, __LINE__)
-#endif
+static inline void ___cufftSafeCall(cufftResult_t err, const char *file, const int line, const char *func = "")
+{
+    if (CUFFT_SUCCESS != err)
+        cv::gpu::cufftError(err, file, line, func);
+}
 
-// cufftSafeCall
-
-#ifdef HAVE_CUFFT
-    static inline void ___cufftSafeCall(cufftResult_t err, const char *file, const int line, const char *func = "")
-    {
-        if (CUFFT_SUCCESS != err)
-            cv::gpu::cufftError(err, file, line, func);
-    }
-
-    #if defined(__GNUC__)
-        #define cufftSafeCall(expr)  ___cufftSafeCall(expr, __FILE__, __LINE__, __func__)
-    #else
-        #define cufftSafeCall(expr)  ___cufftSafeCall(expr, __FILE__, __LINE__)
-    #endif
-#endif
-
-// cublasSafeCall
-
-#ifdef HAVE_CUBLAS
-    static inline void ___cublasSafeCall(cublasStatus_t err, const char *file, const int line, const char *func = "")
-    {
-        if (CUBLAS_STATUS_SUCCESS != err)
-            cv::gpu::cublasError(err, file, line, func);
-    }
-
-    #if defined(__GNUC__)
-        #define cublasSafeCall(expr)  ___cublasSafeCall(expr, __FILE__, __LINE__, __func__)
-    #else
-        #define cublasSafeCall(expr)  ___cublasSafeCall(expr, __FILE__, __LINE__)
-    #endif
-#endif
+static inline void ___cublasSafeCall(cublasStatus_t err, const char *file, const int line, const char *func = "")
+{
+    if (CUBLAS_STATUS_SUCCESS != err)
+        cv::gpu::cublasError(err, file, line, func);
+}
 
 #endif /* __OPENCV_CUDA_SAFE_CALL_HPP__ */

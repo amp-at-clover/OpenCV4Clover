@@ -8,13 +8,11 @@
 
 /* Select appropriate case insensitive string comparison function: */
 #if defined WIN32 || defined _MSC_VER
-# define MY_STRNICMP _strnicmp
-# define MY_STRICMP _stricmp
-# define MY_STRDUP _strdup
+  #define MY_STRNICMP strnicmp
+  #define MY_STRICMP stricmp
 #else
-# define MY_STRNICMP strncasecmp
-# define MY_STRICMP strcasecmp
-# define MY_STRDUP strdup
+  #define MY_STRNICMP strncasecmp
+  #define MY_STRICMP strcasecmp
 #endif
 
 /* List of foreground (FG) DETECTION modules: */
@@ -241,7 +239,7 @@ static int RunBlobTrackingAuto( CvCapture* pCap, CvBlobTrackerAuto* pTracker,cha
 
                     if(pS)
                     {
-                        char* pStr = MY_STRDUP(pS);
+                        char* pStr = strdup(pS);
                         char* pStrFree = pStr;
 
                         while (pStr && strlen(pStr) > 0)
@@ -753,3 +751,6 @@ int main(int argc, char* argv[])
     return 0;
 
 }   /* main() */
+
+
+

@@ -234,3 +234,4 @@ void CvHybridTracker::updateTrackerWithLowPassFilter(Mat) {
 Rect CvHybridTracker::getTrackingWindow() {
     return prev_window;
 }
+

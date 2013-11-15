@@ -266,7 +266,6 @@ const Mat& KalmanFilter::predict(const Mat& control)
 
     // handle the case when there will be measurement before the next predict.
     statePre.copyTo(statePost);
-    errorCovPre.copyTo(errorCovPost);
 
     return statePre;
 }
@@ -298,3 +297,5 @@ const Mat& KalmanFilter::correct(const Mat& measurement)
 }
 
 };
+
+

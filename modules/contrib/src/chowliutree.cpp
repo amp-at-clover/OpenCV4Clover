@@ -287,3 +287,4 @@ bool ChowLiuTree::reduceEdgesToMinSpan(std::list<info>& edges) {
 }
 
 }
+

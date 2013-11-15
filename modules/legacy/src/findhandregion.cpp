@@ -631,3 +631,4 @@ cvFindHandRegionA( CvPoint3D32f * points, int count,
     IPPI_CALL( icvFindHandRegionA( points, count, indexs, line, size, jc,
                                     center, storage, numbers ));
 }
+

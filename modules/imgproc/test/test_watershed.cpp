@@ -130,3 +130,4 @@ void CV_WatershedTest::run( int /* start_from */)
 }
 
 TEST(Imgproc_Watershed, regression) { CV_WatershedTest test; test.safe_run(); }
+

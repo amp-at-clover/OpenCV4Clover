@@ -43,7 +43,9 @@
 #ifndef __OPENCV_PRECOMP_H__
 #define __OPENCV_PRECOMP_H__
 
+#ifdef HAVE_CVCONFIG_H
 #include "cvconfig.h"
+#endif
 
 #include "opencv2/photo/photo.hpp"
 

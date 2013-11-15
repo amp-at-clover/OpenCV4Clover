@@ -27,7 +27,7 @@
 //
 //   * Redistribution's in binary form must reproduce the above copyright notice,
 //     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
+//     and/or other oclMaterials provided with the distribution.
 //
 //   * The name of the copyright holders may not be used to endorse or promote products
 //     derived from this software without specific prior written permission.
@@ -45,12 +45,21 @@
 //
 //M*/
 
-#include "precomp.hpp"
-#include "opencl_kernels.hpp"
 
+#include "precomp.hpp"
+
+using namespace std;
 using namespace cv;
 using namespace cv::ocl;
 
+namespace cv
+{
+namespace ocl
+{
+extern const char *pyrlk;
+extern const char *pyrlk_no_image;
+}
+}
 struct dim3
 {
     unsigned int x, y, z;
@@ -82,16 +91,18 @@ static void lkSparse_run(oclMat &I, oclMat &J,
                          int level, dim3 patch, Size winSize, int iters)
 {
     Context  *clCxt = I.clCxt;
+    int elemCntPerRow = I.step / I.elemSize();
     string kernelName = "lkSparse";
-    size_t localThreads[3]  = { 8, 8, 1 };
-    size_t globalThreads[3] = { 8 * ptcount, 8, 1};
+    bool isImageSupported = support_image2d();
+    size_t localThreads[3]  = { 8, isImageSupported ? 8 : 32, 1 };
+    size_t globalThreads[3] = { 8 * ptcount, isImageSupported ? 8 : 32, 1};
     int cn = I.oclchannels();
     char calcErr = level==0?1:0;
 
     vector<pair<size_t , const void *> > args;
 
-    cl_mem ITex = bindTexture(I);
-    cl_mem JTex = bindTexture(J);
+    cl_mem ITex = isImageSupported ? bindTexture(I) : (cl_mem)I.data;
+    cl_mem JTex = isImageSupported ? bindTexture(J) : (cl_mem)J.data;
 
     args.push_back( make_pair( sizeof(cl_mem), (void *)&ITex ));
     args.push_back( make_pair( sizeof(cl_mem), (void *)&JTex ));
@@ -104,6 +115,8 @@ static void lkSparse_run(oclMat &I, oclMat &J,
     args.push_back( make_pair( sizeof(cl_int), (void *)&level ));
     args.push_back( make_pair( sizeof(cl_int), (void *)&I.rows ));
     args.push_back( make_pair( sizeof(cl_int), (void *)&I.cols ));
+    if (!isImageSupported)
+        args.push_back( make_pair( sizeof(cl_int), (void *)&elemCntPerRow ) );
     args.push_back( make_pair( sizeof(cl_int), (void *)&patch.x ));
     args.push_back( make_pair( sizeof(cl_int), (void *)&patch.y ));
     args.push_back( make_pair( sizeof(cl_int), (void *)&cn ));
@@ -112,27 +125,36 @@ static void lkSparse_run(oclMat &I, oclMat &J,
     args.push_back( make_pair( sizeof(cl_int), (void *)&iters ));
     args.push_back( make_pair( sizeof(cl_char), (void *)&calcErr ));
 
-    bool is_cpu = isCpuDevice();
+    bool is_cpu = queryDeviceInfo<IS_CPU_DEVICE, bool>();
     if (is_cpu)
     {
         openCLExecuteKernel(clCxt, &pyrlk, kernelName, globalThreads, localThreads, args, I.oclchannels(), I.depth(), (char*)" -D CPU");
+        releaseTexture(ITex);
+        releaseTexture(JTex);
     }
     else
     {
-        stringstream idxStr;
-        idxStr << kernelName << "_C" << I.oclchannels() << "_D" << I.depth();
-        cl_kernel kernel = openCLGetKernelFromSource(clCxt, &pyrlk, idxStr.str());
-        int wave_size = (int)queryWaveFrontSize(kernel);
-        openCLSafeCall(clReleaseKernel(kernel));
+        if(isImageSupported)
+        {
+            stringstream idxStr;
+            idxStr << kernelName << "_C" << I.oclchannels() << "_D" << I.depth();
+            cl_kernel kernel = openCLGetKernelFromSource(clCxt, &pyrlk, idxStr.str());
+            int wave_size = queryDeviceInfo<WAVEFRONT_SIZE, int>(kernel);
+            openCLSafeCall(clReleaseKernel(kernel));
 
-        static char opt[32] = {0};
-        sprintf(opt, "-D WAVE_SIZE=%d", wave_size);
+            static char opt[32] = {0};
+            sprintf(opt, " -D WAVE_SIZE=%d", wave_size);
 
-        openCLExecuteKernel(clCxt, &pyrlk, kernelName, globalThreads, localThreads,
-                            args, I.oclchannels(), I.depth(), opt);
+            openCLExecuteKernel(clCxt, &pyrlk, kernelName, globalThreads, localThreads, 
+                                args, I.oclchannels(), I.depth(), opt);
+            releaseTexture(ITex);
+            releaseTexture(JTex);
+        }
+        else
+        {
+            openCLExecuteKernel(clCxt, &pyrlk_no_image, kernelName, globalThreads, localThreads, args, I.oclchannels(), I.depth());
+        }
     }
-    releaseTexture(ITex);
-    releaseTexture(JTex);
 }
 
 void cv::ocl::PyrLKOpticalFlow::sparse(const oclMat &prevImg, const oclMat &nextImg, const oclMat &prevPts, oclMat &nextPts, oclMat &status, oclMat *err)
@@ -213,19 +235,37 @@ static void lkDense_run(oclMat &I, oclMat &J, oclMat &u, oclMat &v,
                         oclMat &prevU, oclMat &prevV, oclMat *err, Size winSize, int iters)
 {
     Context  *clCxt = I.clCxt;
+    bool isImageSupported = support_image2d();
+    int elemCntPerRow = I.step / I.elemSize();
 
     string kernelName = "lkDense";
 
     size_t localThreads[3]  = { 16, 16, 1 };
     size_t globalThreads[3] = { I.cols, I.rows, 1};
 
-    cl_char calcErr = err ? 1 : 0;
+    bool calcErr;
+    if (err)
+    {
+        calcErr = true;
+    }
+    else
+    {
+        calcErr = false;
+    }
 
     cl_mem ITex;
     cl_mem JTex;
 
-    ITex = bindTexture(I);
-    JTex = bindTexture(J);
+    if (isImageSupported)
+    {
+        ITex = bindTexture(I);
+        JTex = bindTexture(J);
+    }
+    else
+    {
+        ITex = (cl_mem)I.data;
+        JTex = (cl_mem)J.data;
+    }
 
     vector<pair<size_t , const void *> > args;
 
@@ -242,15 +282,28 @@ static void lkDense_run(oclMat &I, oclMat &J, oclMat &u, oclMat &v,
     args.push_back( make_pair( sizeof(cl_int), (void *)&prevV.step ));
     args.push_back( make_pair( sizeof(cl_int), (void *)&I.rows ));
     args.push_back( make_pair( sizeof(cl_int), (void *)&I.cols ));
+    //args.push_back( make_pair( sizeof(cl_mem), (void *)&(*err).data ));
+    //args.push_back( make_pair( sizeof(cl_int), (void *)&(*err).step ));
+    if (!isImageSupported)
+    {
+        args.push_back( make_pair( sizeof(cl_int), (void *)&elemCntPerRow ) );
+    }
     args.push_back( make_pair( sizeof(cl_int), (void *)&winSize.width ));
     args.push_back( make_pair( sizeof(cl_int), (void *)&winSize.height ));
     args.push_back( make_pair( sizeof(cl_int), (void *)&iters ));
     args.push_back( make_pair( sizeof(cl_char), (void *)&calcErr ));
 
-    openCLExecuteKernel(clCxt, &pyrlk, kernelName, globalThreads, localThreads, args, I.oclchannels(), I.depth());
+    if (isImageSupported)
+    {
+        openCLExecuteKernel(clCxt, &pyrlk, kernelName, globalThreads, localThreads, args, I.oclchannels(), I.depth());
 
-    releaseTexture(ITex);
-    releaseTexture(JTex);
+        releaseTexture(ITex);
+        releaseTexture(JTex);
+    }
+    else
+    {
+        openCLExecuteKernel(clCxt, &pyrlk_no_image, kernelName, globalThreads, localThreads, args, I.oclchannels(), I.depth());
+    }
 }
 
 void cv::ocl::PyrLKOpticalFlow::dense(const oclMat &prevImg, const oclMat &nextImg, oclMat &u, oclMat &v, oclMat *err)

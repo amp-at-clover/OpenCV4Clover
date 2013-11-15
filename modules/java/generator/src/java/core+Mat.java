@@ -246,19 +246,6 @@ public class Mat {
     }
 
     //
-    // C++: int Mat::dims()
-    //
-
-    // javadoc: Mat::dims()
-    public int dims()
-    {
-
-        int retVal = n_dims(nativeObj);
-
-        return retVal;
-    }
-
-    //
     // C++: int Mat::cols()
     //
 
@@ -1142,9 +1129,6 @@ public class Mat {
 
     // C++: Mat Mat::colRange(int startcol, int endcol)
     private static native long n_colRange(long nativeObj, int startcol, int endcol);
-
-    // C++: int Mat::dims()
-    private static native int n_dims(long nativeObj);
 
     // C++: int Mat::cols()
     private static native int n_cols(long nativeObj);

@@ -3,40 +3,56 @@ Data Structures and Utility Functions
 
 .. highlight:: cpp
 
-ocl::getOpenCLPlatforms
------------------------
-Returns the list of OpenCL platforms
+ocl::Info
+---------
+.. ocv:class:: ocl::Info
 
-.. ocv:function:: int ocl::getOpenCLPlatforms( PlatformsInfo& platforms )
+this class should be maintained by the user and be passed to getDevice
 
-    :param platforms: Output variable
-
-ocl::getOpenCLDevices
----------------------
+ocl::getDevice
+------------------
 Returns the list of devices
 
-.. ocv:function:: int ocl::getOpenCLDevices( DevicesInfo& devices, int deviceType = CVCL_DEVICE_TYPE_GPU, const PlatformInfo* platform = NULL )
+.. ocv:function:: int ocl::getDevice( std::vector<Info> & oclinfo, int devicetype=CVCL_DEVICE_TYPE_GPU )
 
-    :param devices: Output variable
+    :param oclinfo: Output vector of ``ocl::Info`` structures
 
-    :param deviceType: Bitmask of ``CVCL_DEVICE_TYPE_GPU``, ``CVCL_DEVICE_TYPE_CPU`` or ``CVCL_DEVICE_TYPE_DEFAULT``.
+    :param devicetype: One of ``CVCL_DEVICE_TYPE_GPU``, ``CVCL_DEVICE_TYPE_CPU`` or ``CVCL_DEVICE_TYPE_DEFAULT``.
 
-    :param platform: Specifies preferrable platform
+the function must be called before any other ``cv::ocl`` functions; it initializes ocl runtime.
 
 ocl::setDevice
---------------
-Returns void
-
-.. ocv:function:: void ocl::setDevice( const DeviceInfo* info )
-
-    :param info: device info
-
-ocl::setBinaryPath
 ------------------
 Returns void
 
-.. ocv:function:: void ocl::setBinaryPath(const char *path)
+.. ocv:function:: void ocl::setDevice( Info &oclinfo, int devnum = 0 )
+
+    :param oclinfo: Output vector of ``ocl::Info`` structures
+
+    :param devnum: the selected OpenCL device under this platform.
+
+ocl::setBinpath
+------------------
+Returns void
+
+.. ocv:function:: void ocl::setBinpath(const char *path)
 
     :param path: the path of OpenCL kernel binaries
 
 If you call this function and set a valid path, the OCL module will save the compiled kernel to the address in the first time and reload the binary since that. It can save compilation time at the runtime.
+
+ocl::getoclContext
+------------------
+Returns the pointer to the opencl context
+
+.. ocv:function:: void* ocl::getoclContext()
+
+Thefunction are used to get opencl context so that opencv can interactive with other opencl program.
+
+ocl::getoclCommandQueue
+--------------------------
+Returns the pointer to the opencl command queue
+
+.. ocv:function:: void* ocl::getoclCommandQueue()
+
+Thefunction are used to get opencl command queue so that opencv can interactive with other opencl program.

@@ -135,3 +135,4 @@ cvSegmentFGMask( CvArr* _mask, int poly1Hull0, float perimScale,
 }
 
 /* End of file. */
+

@@ -166,3 +166,5 @@ TEST(Features2d_Detector_Keypoints_Dense, validation)
     CV_FeatureDetectorKeypointsTest test(Algorithm::create<FeatureDetector>("Feature2D.Dense"));
     test.safe_run();
 }
+
+

@@ -257,3 +257,4 @@ if __name__ == "__main__":
     outputFile = open(sys.argv[2], 'w')
     outputFile.writelines(lines)
     outputFile.close()
+

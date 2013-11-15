@@ -47,7 +47,7 @@ def GetClasses(root, prefix):
 
 
 def GetJavaHHeaders():
-    print('Generating JNI headers for Java API ...')
+    print('\nGenerating JNI headers for Java API ...')
 
     javahHeaders = os.path.join(managerDir, 'javah_generated_headers')
     if os.path.exists(javahHeaders):
@@ -70,7 +70,7 @@ def GetJavaHHeaders():
         os.system('javah -d %s -classpath %s:%s %s' % (javahHeaders, classPath, \
             AndroidJavaDeps, currentClass))
 
-    print('Building JNI headers list ...')
+    print('\nBuilding JNI headers list ...')
     jniHeaders = GetHeaderFiles(javahHeaders)
 
     return jniHeaders
@@ -94,10 +94,10 @@ def GetOpenCVModules():
 
 
 
-def FindHeaders(includeJni):
+def FindHeaders():
     headers = []
 
-    print('Building Native OpenCV header list ...')
+    print('\nBuilding Native OpenCV header list ...')
 
     cppHeadersFolder = os.path.join(managerDir, 'sdk/native/jni/include/opencv2')
 
@@ -124,8 +124,7 @@ def FindHeaders(includeJni):
         'sdk/native/jni/include/opencv'))
     headers += cHeaders
 
-    if (includeJni):
-        headers += GetJavaHHeaders()
+    headers += GetJavaHHeaders()
 
     return headers
 
@@ -199,32 +198,24 @@ def WriteXml(version, headers, includes, libraries):
 
 
 if __name__ == '__main__':
-    usage = '%prog [options] <OpenCV_Manager install directory> <OpenCV_Manager version>'
+    usage = '%prog <OpenCV_Manager install directory> <OpenCV_Manager version>'
     parser = OptionParser(usage = usage)
-    parser.add_option('--exclude-jni', dest='excludeJni', action="store_true", default=False, metavar="EXCLUDE_JNI", help='Exclude headers for all JNI functions')
-    parser.add_option('--sdk', dest='sdk', default='~/NVPACK/android-sdk-linux', metavar="PATH", help='Android SDK path')
-    parser.add_option('--ndk', dest='ndk', default='/opt/android-ndk-r8c', metavar="PATH", help='Android NDK path')
-    parser.add_option('--java-api-level', dest='java_api_level', default='14', metavar="JAVA_API_LEVEL", help='Java API level for generating JNI headers')
 
-    (options, args) = parser.parse_args()
-
+    args = parser.parse_args()
     if 2 != len(args):
         parser.print_help()
         quit()
 
-    managerDir = args[0]
-    version = args[1]
+    managerDir = args[1][0]
+    version = args[1][1]
 
-    include_jni = not options.excludeJni
-    print 'Include Jni headers: %s' % (include_jni)
+    NDK_path = '/opt/android-ndk-r8c'
+    print '\nUsing Android NDK from "%s"' % NDK_path
 
-    NDK_path = options.ndk
-    print 'Using Android NDK from "%s"' % NDK_path
+    SDK_path = '~/NVPACK/android-sdk-linux'
+    print '\nUsing Android SDK from "%s"' % SDK_path
 
-    SDK_path = options.sdk
-    print 'Using Android SDK from "%s"' % SDK_path
-
-    headers = FindHeaders(include_jni)
+    headers = FindHeaders()
 
     includes = FindIncludes()
 

@@ -44,7 +44,7 @@
 
 #if defined(HAVE_CUDA) && defined(HAVE_NVCUVID)
 
-#if defined(HAVE_FFMPEG) && defined(BUILD_SHARED_LIBS) && !defined(WIN32)
+#if defined(HAVE_FFMPEG) && defined(BUILD_SHARED_LIBS)
     #include "../src/cap_ffmpeg_impl.hpp"
 #else
     #include "../src/cap_ffmpeg_api.hpp"

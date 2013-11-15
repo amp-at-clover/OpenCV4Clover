@@ -626,3 +626,4 @@ void cvDecompPoly( CvContour* cont,
 #endif
 
 // End of file decomppoly.cpp
+

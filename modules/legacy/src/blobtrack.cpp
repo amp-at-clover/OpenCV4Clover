@@ -637,3 +637,4 @@ void cvReleaseBlobTracker(CvBlobTracker**ppT )
     ppT[0]->Release();
     ppT[0] = 0;
 }
+

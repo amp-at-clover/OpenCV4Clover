@@ -165,3 +165,4 @@ void cv::filterSpeckles( Mat& img, uchar newVal, int maxSpeckleSize, uchar maxDi
         }
     }
 }
+

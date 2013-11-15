@@ -26,7 +26,7 @@
 //
 //   * Redistribution's in binary form must reproduce the above copyright notice,
 //     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
+//     and/or other oclMaterials provided with the distribution.
 //
 //   * The name of the copyright holders may not be used to endorse or promote products
 //     derived from this software without specific prior written permission.
@@ -43,36 +43,51 @@
 // the use of this software, even if advised of the possibility of such damage.
 //
 //M*/
-#include "perf_precomp.hpp"
-
-using namespace perf;
+#include "precomp.hpp"
 
 ///////////// cvtColor////////////////////////
-
-typedef TestBaseWithParam<Size> cvtColorFixture;
-
-PERF_TEST_P(cvtColorFixture, cvtColor, OCL_TYPICAL_MAT_SIZES)
+PERFTEST(cvtColor)
 {
-    const Size srcSize = GetParam();
+    Mat src, dst, ocl_dst;
+    ocl::oclMat d_src, d_dst;
 
-    Mat src(srcSize, CV_8UC4), dst(srcSize, CV_8UC4);
-    declare.in(src, WARMUP_RNG).out(dst);
+    int all_type[] = {CV_8UC4};
+    std::string type_name[] = {"CV_8UC4"};
 
-    if (RUN_OCL_IMPL)
+    for (int size = Min_Size; size <= Max_Size; size *= Multiple)
     {
-        ocl::oclMat oclSrc(src), oclDst(src.size(), CV_8UC4);
+        for (size_t j = 0; j < sizeof(all_type) / sizeof(int); j++)
+        {
+            gen(src, size, size, all_type[j], 0, 256);
+            SUBTEST << size << "x" << size << "; " << type_name[j] << " ; CV_RGBA2GRAY";
 
-        OCL_TEST_CYCLE() ocl::cvtColor(oclSrc, oclDst, CV_RGBA2GRAY, 4);
-        oclDst.download(dst);
+            cvtColor(src, dst, CV_RGBA2GRAY, 4);
 
-        SANITY_CHECK(dst);
+            CPU_ON;
+            cvtColor(src, dst, CV_RGBA2GRAY, 4);
+            CPU_OFF;
+
+            d_src.upload(src);
+
+            WARMUP_ON;
+            ocl::cvtColor(d_src, d_dst, CV_RGBA2GRAY, 4);
+            WARMUP_OFF;
+
+            GPU_ON;
+            ocl::cvtColor(d_src, d_dst, CV_RGBA2GRAY, 4);
+            GPU_OFF;
+
+            GPU_FULL_ON;
+            d_src.upload(src);
+            ocl::cvtColor(d_src, d_dst, CV_RGBA2GRAY, 4);
+            d_dst.download(ocl_dst);
+            GPU_FULL_OFF;
+
+            TestSystem::instance().ExceptedMatSimilar(dst, ocl_dst, 1e-5);
+        }
+
+
     }
-    else if (RUN_PLAIN_IMPL)
-    {
-        TEST_CYCLE() cv::cvtColor(src, dst, CV_RGBA2GRAY, 4);
 
-        SANITY_CHECK(dst);
-    }
-    else
-        OCL_PERF_ELSE
+
 }

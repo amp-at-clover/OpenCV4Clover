@@ -15,6 +15,7 @@ using namespace cv;
 Mat src, dst;
 int top, bottom, left, right;
 int borderType;
+Scalar value;
 const char* window_name = "copyMakeBorder Demo";
 RNG rng(12345);
 
@@ -63,7 +64,7 @@ int main( int, char** argv )
          else if( (char)c == 'r' )
            { borderType = BORDER_REPLICATE; }
 
-         Scalar value( rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255) );
+         value = Scalar( rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255) );
          copyMakeBorder( src, dst, top, bottom, left, right, borderType, value );
 
          imshow( window_name, dst );
@@ -71,3 +72,5 @@ int main( int, char** argv )
 
   return 0;
 }
+
+

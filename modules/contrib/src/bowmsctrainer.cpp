@@ -136,3 +136,4 @@ Mat BOWMSCTrainer::cluster(const Mat& _descriptors) const {
 }
 
 }
+

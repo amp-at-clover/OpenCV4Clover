@@ -866,3 +866,5 @@ protected:
 };
 
 TEST(Core_DFT, complex_output) { Core_DFTComplexOutputTest test; test.safe_run(); }
+
+

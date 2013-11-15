@@ -2,6 +2,7 @@ package org.opencv.test;
 
 import java.io.File;
 import java.io.IOException;
+import junit.framework.Assert;
 
 import org.opencv.core.Mat;
 

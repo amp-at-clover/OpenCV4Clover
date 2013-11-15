@@ -25,7 +25,7 @@
 //
 //   * Redistribution's in binary form must reproduce the above copyright notice,
 //     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
+//     and/or other oclMaterials provided with the distribution.
 //
 //   * The name of the copyright holders may not be used to endorse or promote products
 //     derived from this software without specific prior written permission.
@@ -43,7 +43,7 @@
 //
 //M*/
 
-#include "test_precomp.hpp"
+#include "precomp.hpp"
 #ifdef HAVE_OPENCL
 namespace
 {
@@ -71,6 +71,8 @@ namespace
 
             queryDescCount = 300; // must be even number because we split train data in some cases in two
             countFactor = 4; // do not change it
+
+            cv::RNG &rng = cvtest::TS::ptr()->get_rng();
 
             cv::Mat queryBuf, trainBuf;
 
@@ -106,7 +108,7 @@ namespace
         }
     };
 
-    OCL_TEST_P(BruteForceMatcher, Match_Single)
+    TEST_P(BruteForceMatcher, Match_Single)
     {
         cv::ocl::BruteForceMatcher_OCL_base matcher(distType);
 
@@ -126,7 +128,7 @@ namespace
         ASSERT_EQ(0, badCount);
     }
 
-    OCL_TEST_P(BruteForceMatcher, KnnMatch_2_Single)
+    TEST_P(BruteForceMatcher, KnnMatch_2_Single)
     {
         const int knn = 2;
 
@@ -158,7 +160,7 @@ namespace
         ASSERT_EQ(0, badCount);
     }
 
-    OCL_TEST_P(BruteForceMatcher, RadiusMatch_Single)
+    TEST_P(BruteForceMatcher, RadiusMatch_Single)
     {
         float radius = 1.f / countFactor;
 
@@ -187,20 +189,20 @@ namespace
         ASSERT_EQ(0, badCount);
     }
 
-    INSTANTIATE_TEST_CASE_P(OCL_Features2D, BruteForceMatcher,
+    INSTANTIATE_TEST_CASE_P(OCL_Features2D, BruteForceMatcher, 
         testing::Combine(
         testing::Values(
             DistType(cv::ocl::BruteForceMatcher_OCL_base::L1Dist),
-            DistType(cv::ocl::BruteForceMatcher_OCL_base::L2Dist)/*,
+            DistType(cv::ocl::BruteForceMatcher_OCL_base::L2Dist)/*, 
             DistType(cv::ocl::BruteForceMatcher_OCL_base::HammingDist)*/
         ),
         testing::Values(
-            DescriptorSize(57),
-            DescriptorSize(64),
-            DescriptorSize(83),
-            DescriptorSize(128),
-            DescriptorSize(179),
-            DescriptorSize(256),
+            DescriptorSize(57), 
+            DescriptorSize(64), 
+            DescriptorSize(83), 
+            DescriptorSize(128), 
+            DescriptorSize(179), 
+            DescriptorSize(256), 
             DescriptorSize(304))
         )
     );

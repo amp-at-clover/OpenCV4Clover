@@ -456,3 +456,4 @@ inline string App::workFps() const
     ss << work_fps;
     return ss.str();
 }
+

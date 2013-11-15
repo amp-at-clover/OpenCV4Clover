@@ -282,3 +282,6 @@ Result
            :align: center
 
 * Notice how the image is superposed to the black background on the edge regions.
+
+
+

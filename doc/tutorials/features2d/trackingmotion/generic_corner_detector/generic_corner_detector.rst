@@ -37,3 +37,4 @@ Result
 
 .. image:: images/My_Shi_Tomasi_corner_detector_Result.jpg
               :align: center
+

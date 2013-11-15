@@ -12,6 +12,7 @@ set(prefix      "${CMAKE_INSTALL_PREFIX}")
 set(exec_prefix "\${prefix}")
 set(libdir      "") #TODO: need link paths for OpenCV_EXTRA_COMPONENTS
 set(includedir  "\${prefix}/${OPENCV_INCLUDE_INSTALL_PATH}")
+set(VERSION     ${OPENCV_VERSION})
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
   set(ocv_optkind OPT)
@@ -57,17 +58,8 @@ endforeach()
 # add extra dependencies required for OpenCV
 set(OpenCV_LIB_COMPONENTS ${OpenCV_LIB_COMPONENTS_})
 if(OpenCV_EXTRA_COMPONENTS)
-  foreach(extra_component ${OpenCV_EXTRA_COMPONENTS})
-
-    if(extra_component MATCHES "^-[lL]" OR extra_component MATCHES "[\\/]")
-      set(maybe_l_prefix "")
-    else()
-      set(maybe_l_prefix "-l")
-    endif()
-
-    set(OpenCV_LIB_COMPONENTS "${OpenCV_LIB_COMPONENTS} ${maybe_l_prefix}${extra_component}")
-
-  endforeach()
+  string(REPLACE ";" " " OpenCV_EXTRA_COMPONENTS "${OpenCV_EXTRA_COMPONENTS}")
+  set(OpenCV_LIB_COMPONENTS "${OpenCV_LIB_COMPONENTS} ${OpenCV_EXTRA_COMPONENTS}")
 endif()
 
 #generate the .pc file

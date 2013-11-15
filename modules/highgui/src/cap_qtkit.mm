@@ -1,44 +1,32 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-// IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-// By downloading, copying, installing or using the software you agree to this license.
-// If you do not agree to this license, do not download, install,
-// copy or use the software.
-//
-//
-//                          License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2013, OpenCV Foundation, all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-// * Redistribution's of source code must retain the above copyright notice,
-// this list of conditions and the following disclaimer.
-//
-// * Redistribution's in binary form must reproduce the above copyright notice,
-// this list of conditions and the following disclaimer in the documentation
-// and/or other materials provided with the distribution.
-//
-// * The name of the copyright holders may not be used to endorse or promote products
-// derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the contributor be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*////////////////////////////////////////////////////////////////////////////////////////
-
+/*
+ *  CvCapture.mm
+ *
+ *  Created by Nicholas Butko on 11/3/09.
+ *  Copyright 2009. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 3. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 #include "precomp.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -289,17 +277,8 @@ bool CvCaptureCAM::grabFrame(double timeOut) {
     double sleepTime = 0.005;
     double total = 0;
 
-    // If the capture is launched in a separate thread, then
-    // [NSRunLoop currentRunLoop] is not the same as in the main thread, and has no timer.
-    //see https://developer.apple.com/library/mac/#documentation/Cocoa/Reference/Foundation/Classes/nsrunloop_Class/Reference/Reference.html
-    // "If no input sources or timers are attached to the run loop, this
-    // method exits immediately"
-    // using usleep() is not a good alternative, because it may block the GUI.
-    // Create a dummy timer so that runUntilDate does not exit immediately:
-    [NSTimer scheduledTimerWithTimeInterval:100 target:nil selector:@selector(doFireTimer:) userInfo:nil repeats:YES];
-    while (![capture updateImage] && (total += sleepTime)<=timeOut) {
-        [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:sleepTime]];
-    }
+    while (![capture updateImage] && (total += sleepTime)<=timeOut)
+        usleep((int)(sleepTime*1000));
 
     [localpool drain];
 
@@ -344,11 +323,9 @@ int CvCaptureCAM::startCaptureDevice(int cameraNum) {
     }
 
     if (cameraNum >= 0) {
-        NSUInteger nCameras = [devices count];
-        if( (NSUInteger)cameraNum >= nCameras ) {
-            [localpool drain];
+        int nCameras = [devices count];
+        if( cameraNum < 0 || cameraNum >= nCameras )
             return 0;
-        }
         device = [devices objectAtIndex:cameraNum] ;
     } else {
         device = [QTCaptureDevice defaultInputDeviceWithMediaType:QTMediaTypeVideo]  ;
@@ -412,7 +389,6 @@ int CvCaptureCAM::startCaptureDevice(int cameraNum) {
 
         grabFrame(60);
 
-        [localpool drain];
         return 1;
     }
 
@@ -422,9 +398,6 @@ int CvCaptureCAM::startCaptureDevice(int cameraNum) {
 
 void CvCaptureCAM::setWidthHeight() {
     NSAutoreleasePool* localpool = [[NSAutoreleasePool alloc] init];
-
-    [mCaptureSession stopRunning];
-
     NSDictionary* pixelBufferOptions = [NSDictionary dictionaryWithObjectsAndKeys:
                           [NSNumber numberWithDouble:1.0*width], (id)kCVPixelBufferWidthKey,
                           [NSNumber numberWithDouble:1.0*height], (id)kCVPixelBufferHeightKey,
@@ -433,16 +406,12 @@ void CvCaptureCAM::setWidthHeight() {
                           nil];
 
     [mCaptureDecompressedVideoOutput setPixelBufferAttributes:pixelBufferOptions];
-
-    [mCaptureSession startRunning];
-
     grabFrame(60);
     [localpool drain];
 }
 
 
 double CvCaptureCAM::getProperty(int property_id){
-    int retval;
     NSAutoreleasePool* localpool = [[NSAutoreleasePool alloc] init];
 
     NSArray* connections = [mCaptureDeviceInput	connections];
@@ -452,18 +421,15 @@ double CvCaptureCAM::getProperty(int property_id){
     int width=s1.width, height=s1.height;
     switch (property_id) {
         case CV_CAP_PROP_FRAME_WIDTH:
-            retval = width;
-            break;
+            return width;
         case CV_CAP_PROP_FRAME_HEIGHT:
-            retval = height;
-            break;
+            return height;
         default:
-            retval = 0;
-            break;
+            return 0;
     }
 
     [localpool drain];
-    return retval;
+
 }
 
 bool CvCaptureCAM::setProperty(int property_id, double value) {
@@ -511,15 +477,13 @@ bool CvCaptureCAM::setProperty(int property_id, double value) {
 @implementation CaptureDelegate
 
 - (id)init {
-    self = [super init];
-    if (self) {
-        newFrame = 0;
-        imagedata = NULL;
-        bgr_imagedata = NULL;
-        currSize = 0;
-        image = NULL;
-        bgr_image = NULL;
-    }
+    [super init];
+    newFrame = 0;
+    imagedata = NULL;
+    bgr_imagedata = NULL;
+    currSize = 0;
+    image = NULL;
+    bgr_image = NULL;
     return self;
 }
 
@@ -594,26 +558,26 @@ didDropVideoFrameWithSampleBuffer:(QTSampleBuffer *)sampleBuffer
         memcpy(imagedata, baseaddress, currSize);
 
         if (image == NULL) {
-            image = cvCreateImageHeader(cvSize((int)width,(int)height), IPL_DEPTH_8U, 4);
+            image = cvCreateImageHeader(cvSize(width,height), IPL_DEPTH_8U, 4);
         }
-        image->width = (int)width;
-        image->height = (int)height;
+        image->width =width;
+        image->height = height;
         image->nChannels = 4;
         image->depth = IPL_DEPTH_8U;
-        image->widthStep = (int)rowBytes;
+        image->widthStep = rowBytes;
         image->imageData = imagedata;
-        image->imageSize = (int)currSize;
+        image->imageSize = currSize;
 
         if (bgr_image == NULL) {
-            bgr_image = cvCreateImageHeader(cvSize((int)width,(int)height), IPL_DEPTH_8U, 3);
+            bgr_image = cvCreateImageHeader(cvSize(width,height), IPL_DEPTH_8U, 3);
         }
-        bgr_image->width = (int)width;
-        bgr_image->height = (int)height;
+        bgr_image->width =width;
+        bgr_image->height = height;
         bgr_image->nChannels = 3;
         bgr_image->depth = IPL_DEPTH_8U;
-        bgr_image->widthStep = (int)rowBytes;
+        bgr_image->widthStep = rowBytes;
         bgr_image->imageData = bgr_imagedata;
-        bgr_image->imageSize = (int)currSize;
+        bgr_image->imageSize = currSize;
 
         cvCvtColor(image, bgr_image, CV_BGRA2BGR);
 
@@ -767,29 +731,29 @@ IplImage* CvCaptureFile::retrieveFramePixelBuffer() {
         }
 
         if (image == NULL) {
-            image = cvCreateImageHeader(cvSize((int)width,(int)height), IPL_DEPTH_8U, 4);
+            image = cvCreateImageHeader(cvSize(width,height), IPL_DEPTH_8U, 4);
         }
 
-        image->width = (int)width;
-        image->height = (int)height;
+        image->width =width;
+        image->height = height;
         image->nChannels = 4;
         image->depth = IPL_DEPTH_8U;
-        image->widthStep = (int)rowBytes;
+        image->widthStep = rowBytes;
         image->imageData = imagedata;
-        image->imageSize = (int)currSize;
+        image->imageSize = currSize;
 
 
         if (bgr_image == NULL) {
-            bgr_image = cvCreateImageHeader(cvSize((int)width,(int)height), IPL_DEPTH_8U, 3);
+            bgr_image = cvCreateImageHeader(cvSize(width,height), IPL_DEPTH_8U, 3);
         }
 
-        bgr_image->width = (int)width;
-        bgr_image->height = (int)height;
+        bgr_image->width =width;
+        bgr_image->height = height;
         bgr_image->nChannels = 3;
         bgr_image->depth = IPL_DEPTH_8U;
-        bgr_image->widthStep = (int)rowBytes;
+        bgr_image->widthStep = rowBytes;
         bgr_image->imageData = bgr_imagedata;
-        bgr_image->imageSize = (int)currSize;
+        bgr_image->imageSize = currSize;
 
         cvCvtColor(image, bgr_image,CV_BGRA2BGR);
 
@@ -1061,3 +1025,4 @@ bool CvVideoWriter_QT::writeFrame(const IplImage* image) {
 
     return 1;
 }
+

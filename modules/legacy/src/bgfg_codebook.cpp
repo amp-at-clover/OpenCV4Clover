@@ -359,3 +359,4 @@ void cvBGCodeBookClearStale( CvBGCodeBookModel* model, int staleThresh,
 }
 
 /* End of file. */
+

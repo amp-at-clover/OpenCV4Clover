@@ -30,7 +30,6 @@ This tutorial code's is shown lines below. You can also download it from `here <
    #include "opencv2/features2d/features2d.hpp"
    #include "opencv2/highgui/highgui.hpp"
    #include "opencv2/calib3d/calib3d.hpp"
-   #include "opencv2/nonfree/nonfree.hpp"
 
    using namespace cv;
 
@@ -146,3 +145,4 @@ Result
    .. image:: images/Feature_Homography_Result.jpg
       :align: center
       :height: 200pt
+

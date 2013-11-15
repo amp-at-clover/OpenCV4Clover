@@ -94,20 +94,9 @@ void fastFree(void* ptr)
 #define STAT(stmt)
 
 #ifdef WIN32
-#if (_WIN32_WINNT >= 0x0602)
-#include <synchapi.h>
-#endif
-
 struct CriticalSection
 {
-    CriticalSection()
-    {
-#if (_WIN32_WINNT >= 0x0600)
-        InitializeCriticalSectionEx(&cs, 1000, 0);
-#else
-        InitializeCriticalSection(&cs);
-#endif
-    }
+    CriticalSection() { InitializeCriticalSection(&cs); }
     ~CriticalSection() { DeleteCriticalSection(&cs); }
     void lock() { EnterCriticalSection(&cs); }
     void unlock() { LeaveCriticalSection(&cs); }

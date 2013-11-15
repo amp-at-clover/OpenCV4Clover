@@ -13,3 +13,6 @@ ADD_EXECUTABLE(opencv_example  minarea.c)
 TARGET_LINK_LIBRARIES(opencv_example ${OpenCV_LIBS})
 
 #MESSAGE(STATUS "OpenCV_LIBS: ${OpenCV_LIBS}")
+
+
+

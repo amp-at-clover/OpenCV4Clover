@@ -29,10 +29,6 @@ if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 endif(MSVC)
 
-if (HAVE_WINRT)
-  add_definitions(-DHAVE_WINRT)
-endif()
-
 add_library(${PNG_LIBRARY} STATIC ${lib_srcs} ${lib_hdrs})
 target_link_libraries(${PNG_LIBRARY} ${ZLIB_LIBRARY})
 
@@ -55,5 +51,5 @@ if(ENABLE_SOLUTION_FOLDERS)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
-  ocv_install_target(${PNG_LIBRARY} EXPORT OpenCVModules ARCHIVE DESTINATION ${OPENCV_3P_LIB_INSTALL_PATH} COMPONENT main)
+  install(TARGETS ${PNG_LIBRARY} ARCHIVE DESTINATION ${OPENCV_3P_LIB_INSTALL_PATH} COMPONENT main)
 endif()

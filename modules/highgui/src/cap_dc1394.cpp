@@ -296,7 +296,11 @@ static CvCaptureCAM_DC1394 * icvCaptureFromCAM_DC1394 (int index)
     if (pcap->format!=FORMAT_SCALABLE_IMAGE_SIZE) { // everything except Format 7
         if (dc1394_dma_setup_capture(pcap->handle, pcap->camera->node, index+1 /*channel*/,
                     pcap->format, pcap->mode, SPEED_400,
-                    pcap->frame_rate, NUM_BUFFERS, 1 /*drop_frames*/,
+                    pcap->frame_rate, NUM_BUFFERS,
+#ifdef HAVE_DC1394_095
+                    0 /*do_extra_buffering*/,
+#endif
+                    1 /*DROP_FRAMES*/,
                     pcap->device_name, pcap->camera) != DC1394_SUCCESS) {
             fprintf(stderr,"%s:%d: Failed to setup DMA capture with VIDEO1394\n",__FILE__,__LINE__);
             goto ERROR;
@@ -307,7 +311,11 @@ static CvCaptureCAM_DC1394 * icvCaptureFromCAM_DC1394 (int index)
                     pcap->mode, SPEED_400, QUERY_FROM_CAMERA,
                     (unsigned int)QUERY_FROM_CAMERA, (unsigned int)QUERY_FROM_CAMERA,
                     (unsigned int)QUERY_FROM_CAMERA, (unsigned int)QUERY_FROM_CAMERA,
-                    NUM_BUFFERS, 1 /*drop_frames*/,
+                    NUM_BUFFERS,
+#ifdef HAVE_DC1394_095
+                    0 /*do_extra_buffering*/,
+#endif
+                    1 /*DROP_FRAMES*/,
                     pcap->device_name, pcap->camera) != DC1394_SUCCESS) {
             fprintf(stderr,"%s:%d: Failed to setup DMA capture with VIDEO1394\n",__FILE__,__LINE__);
             goto ERROR;
@@ -653,7 +661,11 @@ icvSetModeCAM_DC1394( CvCaptureCAM_DC1394 * capture, int mode ){
     dc1394_dma_unlisten(capture->handle, capture->camera);
     if (dc1394_dma_setup_capture(capture->handle, capture->camera->node, capture->camera->channel /*channel*/,
                 format, mode, SPEED_400,
-                frame_rate, NUM_BUFFERS, 1 /*drop_frames*/,
+                frame_rate, NUM_BUFFERS,
+#ifdef HAVE_DC1394_095
+                0 /*do_extra_buffering*/,
+#endif
+                1 /*DROP_FRAMES*/,
                 capture->device_name, capture->camera) != DC1394_SUCCESS) {
         fprintf(stderr,"%s:%d: Failed to setup DMA capture with VIDEO1394\n",__FILE__,__LINE__);
         return 0;

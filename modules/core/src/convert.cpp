@@ -194,27 +194,17 @@ static void merge64s(const int64** src, int64* dst, int len, int cn )
 typedef void (*SplitFunc)(const uchar* src, uchar** dst, int len, int cn);
 typedef void (*MergeFunc)(const uchar** src, uchar* dst, int len, int cn);
 
-static SplitFunc getSplitFunc(int depth)
+static SplitFunc splitTab[] =
 {
-    static SplitFunc splitTab[] =
-    {
-        (SplitFunc)GET_OPTIMIZED(split8u), (SplitFunc)GET_OPTIMIZED(split8u), (SplitFunc)GET_OPTIMIZED(split16u), (SplitFunc)GET_OPTIMIZED(split16u),
-        (SplitFunc)GET_OPTIMIZED(split32s), (SplitFunc)GET_OPTIMIZED(split32s), (SplitFunc)GET_OPTIMIZED(split64s), 0
-    };
+    (SplitFunc)GET_OPTIMIZED(split8u), (SplitFunc)GET_OPTIMIZED(split8u), (SplitFunc)GET_OPTIMIZED(split16u), (SplitFunc)GET_OPTIMIZED(split16u),
+    (SplitFunc)GET_OPTIMIZED(split32s), (SplitFunc)GET_OPTIMIZED(split32s), (SplitFunc)GET_OPTIMIZED(split64s), 0
+};
 
-    return splitTab[depth];
-}
-
-static MergeFunc getMergeFunc(int depth)
+static MergeFunc mergeTab[] =
 {
-    static MergeFunc mergeTab[] =
-    {
-        (MergeFunc)GET_OPTIMIZED(merge8u), (MergeFunc)GET_OPTIMIZED(merge8u), (MergeFunc)GET_OPTIMIZED(merge16u), (MergeFunc)GET_OPTIMIZED(merge16u),
-        (MergeFunc)GET_OPTIMIZED(merge32s), (MergeFunc)GET_OPTIMIZED(merge32s), (MergeFunc)GET_OPTIMIZED(merge64s), 0
-    };
-
-    return mergeTab[depth];
-}
+    (MergeFunc)GET_OPTIMIZED(merge8u), (MergeFunc)GET_OPTIMIZED(merge8u), (MergeFunc)GET_OPTIMIZED(merge16u), (MergeFunc)GET_OPTIMIZED(merge16u),
+    (MergeFunc)GET_OPTIMIZED(merge32s), (MergeFunc)GET_OPTIMIZED(merge32s), (MergeFunc)GET_OPTIMIZED(merge64s), 0
+};
 
 }
 
@@ -227,7 +217,7 @@ void cv::split(const Mat& src, Mat* mv)
         return;
     }
 
-    SplitFunc func = getSplitFunc(depth);
+    SplitFunc func = splitTab[depth];
     CV_Assert( func != 0 );
 
     int esz = (int)src.elemSize(), esz1 = (int)src.elemSize1();
@@ -338,7 +328,7 @@ void cv::merge(const Mat* mv, size_t n, OutputArray _dst)
 
     NAryMatIterator it(arrays, ptrs, cn+1);
     int total = (int)it.size, blocksize = cn <= 4 ? total : std::min(total, blocksize0);
-    MergeFunc func = getMergeFunc(depth);
+    MergeFunc func = mergeTab[depth];
 
     for( i = 0; i < it.nplanes; i++, ++it )
     {
@@ -439,17 +429,12 @@ static void mixChannels64s( const int64** src, const int* sdelta,
 typedef void (*MixChannelsFunc)( const uchar** src, const int* sdelta,
         uchar** dst, const int* ddelta, int len, int npairs );
 
-static MixChannelsFunc getMixchFunc(int depth)
+static MixChannelsFunc mixchTab[] =
 {
-    static MixChannelsFunc mixchTab[] =
-    {
-        (MixChannelsFunc)mixChannels8u, (MixChannelsFunc)mixChannels8u, (MixChannelsFunc)mixChannels16u,
-        (MixChannelsFunc)mixChannels16u, (MixChannelsFunc)mixChannels32s, (MixChannelsFunc)mixChannels32s,
-        (MixChannelsFunc)mixChannels64s, 0
-    };
-
-    return mixchTab[depth];
-}
+    (MixChannelsFunc)mixChannels8u, (MixChannelsFunc)mixChannels8u, (MixChannelsFunc)mixChannels16u,
+    (MixChannelsFunc)mixChannels16u, (MixChannelsFunc)mixChannels32s, (MixChannelsFunc)mixChannels32s,
+    (MixChannelsFunc)mixChannels64s, 0
+};
 
 }
 
@@ -504,7 +489,7 @@ void cv::mixChannels( const Mat* src, size_t nsrcs, Mat* dst, size_t ndsts, cons
 
     NAryMatIterator it(arrays, ptrs, (int)(nsrcs + ndsts));
     int total = (int)it.size, blocksize = std::min(total, (int)((BLOCK_SIZE + esz1-1)/esz1));
-    MixChannelsFunc func = getMixchFunc(depth);
+    MixChannelsFunc func = mixchTab[depth];
 
     for( i = 0; i < it.nplanes; i++, ++it )
     {
@@ -956,109 +941,104 @@ DEF_CVT_FUNC(32s64f, int, double);
 DEF_CVT_FUNC(32f64f, float, double);
 DEF_CPY_FUNC(64s,    int64);
 
-static BinaryFunc getCvtScaleAbsFunc(int depth)
+static BinaryFunc cvtScaleAbsTab[] =
 {
-    static BinaryFunc cvtScaleAbsTab[] =
-    {
-        (BinaryFunc)cvtScaleAbs8u, (BinaryFunc)cvtScaleAbs8s8u, (BinaryFunc)cvtScaleAbs16u8u,
-        (BinaryFunc)cvtScaleAbs16s8u, (BinaryFunc)cvtScaleAbs32s8u, (BinaryFunc)cvtScaleAbs32f8u,
-        (BinaryFunc)cvtScaleAbs64f8u, 0
-    };
+    (BinaryFunc)cvtScaleAbs8u, (BinaryFunc)cvtScaleAbs8s8u, (BinaryFunc)cvtScaleAbs16u8u,
+    (BinaryFunc)cvtScaleAbs16s8u, (BinaryFunc)cvtScaleAbs32s8u, (BinaryFunc)cvtScaleAbs32f8u,
+    (BinaryFunc)cvtScaleAbs64f8u, 0
+};
 
-    return cvtScaleAbsTab[depth];
-}
+static BinaryFunc cvtScaleTab[][8] =
+{
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvtScale8u), (BinaryFunc)GET_OPTIMIZED(cvtScale8s8u), (BinaryFunc)GET_OPTIMIZED(cvtScale16u8u),
+        (BinaryFunc)GET_OPTIMIZED(cvtScale16s8u), (BinaryFunc)GET_OPTIMIZED(cvtScale32s8u), (BinaryFunc)GET_OPTIMIZED(cvtScale32f8u),
+        (BinaryFunc)cvtScale64f8u, 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvtScale8u8s), (BinaryFunc)GET_OPTIMIZED(cvtScale8s), (BinaryFunc)GET_OPTIMIZED(cvtScale16u8s),
+        (BinaryFunc)GET_OPTIMIZED(cvtScale16s8s), (BinaryFunc)GET_OPTIMIZED(cvtScale32s8s), (BinaryFunc)GET_OPTIMIZED(cvtScale32f8s),
+        (BinaryFunc)cvtScale64f8s, 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvtScale8u16u), (BinaryFunc)GET_OPTIMIZED(cvtScale8s16u), (BinaryFunc)GET_OPTIMIZED(cvtScale16u),
+        (BinaryFunc)GET_OPTIMIZED(cvtScale16s16u), (BinaryFunc)GET_OPTIMIZED(cvtScale32s16u), (BinaryFunc)GET_OPTIMIZED(cvtScale32f16u),
+        (BinaryFunc)cvtScale64f16u, 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvtScale8u16s), (BinaryFunc)GET_OPTIMIZED(cvtScale8s16s), (BinaryFunc)GET_OPTIMIZED(cvtScale16u16s),
+        (BinaryFunc)GET_OPTIMIZED(cvtScale16s), (BinaryFunc)GET_OPTIMIZED(cvtScale32s16s), (BinaryFunc)GET_OPTIMIZED(cvtScale32f16s),
+        (BinaryFunc)cvtScale64f16s, 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvtScale8u32s), (BinaryFunc)GET_OPTIMIZED(cvtScale8s32s), (BinaryFunc)GET_OPTIMIZED(cvtScale16u32s),
+        (BinaryFunc)GET_OPTIMIZED(cvtScale16s32s), (BinaryFunc)GET_OPTIMIZED(cvtScale32s), (BinaryFunc)GET_OPTIMIZED(cvtScale32f32s),
+        (BinaryFunc)cvtScale64f32s, 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvtScale8u32f), (BinaryFunc)GET_OPTIMIZED(cvtScale8s32f), (BinaryFunc)GET_OPTIMIZED(cvtScale16u32f),
+        (BinaryFunc)GET_OPTIMIZED(cvtScale16s32f), (BinaryFunc)GET_OPTIMIZED(cvtScale32s32f), (BinaryFunc)GET_OPTIMIZED(cvtScale32f),
+        (BinaryFunc)cvtScale64f32f, 0
+    },
+    {
+        (BinaryFunc)cvtScale8u64f, (BinaryFunc)cvtScale8s64f, (BinaryFunc)cvtScale16u64f,
+        (BinaryFunc)cvtScale16s64f, (BinaryFunc)cvtScale32s64f, (BinaryFunc)cvtScale32f64f,
+        (BinaryFunc)cvtScale64f, 0
+    },
+    {
+        0, 0, 0, 0, 0, 0, 0, 0
+    }
+};
+
+static BinaryFunc cvtTab[][8] =
+{
+    {
+        (BinaryFunc)(cvt8u), (BinaryFunc)GET_OPTIMIZED(cvt8s8u), (BinaryFunc)GET_OPTIMIZED(cvt16u8u),
+        (BinaryFunc)GET_OPTIMIZED(cvt16s8u), (BinaryFunc)GET_OPTIMIZED(cvt32s8u), (BinaryFunc)GET_OPTIMIZED(cvt32f8u),
+        (BinaryFunc)GET_OPTIMIZED(cvt64f8u), 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvt8u8s), (BinaryFunc)cvt8u, (BinaryFunc)GET_OPTIMIZED(cvt16u8s),
+        (BinaryFunc)GET_OPTIMIZED(cvt16s8s), (BinaryFunc)GET_OPTIMIZED(cvt32s8s), (BinaryFunc)GET_OPTIMIZED(cvt32f8s),
+        (BinaryFunc)GET_OPTIMIZED(cvt64f8s), 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvt8u16u), (BinaryFunc)GET_OPTIMIZED(cvt8s16u), (BinaryFunc)cvt16u,
+        (BinaryFunc)GET_OPTIMIZED(cvt16s16u), (BinaryFunc)GET_OPTIMIZED(cvt32s16u), (BinaryFunc)GET_OPTIMIZED(cvt32f16u),
+        (BinaryFunc)GET_OPTIMIZED(cvt64f16u), 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvt8u16s), (BinaryFunc)GET_OPTIMIZED(cvt8s16s), (BinaryFunc)GET_OPTIMIZED(cvt16u16s),
+        (BinaryFunc)cvt16u, (BinaryFunc)GET_OPTIMIZED(cvt32s16s), (BinaryFunc)GET_OPTIMIZED(cvt32f16s),
+        (BinaryFunc)GET_OPTIMIZED(cvt64f16s), 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvt8u32s), (BinaryFunc)GET_OPTIMIZED(cvt8s32s), (BinaryFunc)GET_OPTIMIZED(cvt16u32s),
+        (BinaryFunc)GET_OPTIMIZED(cvt16s32s), (BinaryFunc)cvt32s, (BinaryFunc)GET_OPTIMIZED(cvt32f32s),
+        (BinaryFunc)GET_OPTIMIZED(cvt64f32s), 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvt8u32f), (BinaryFunc)GET_OPTIMIZED(cvt8s32f), (BinaryFunc)GET_OPTIMIZED(cvt16u32f),
+        (BinaryFunc)GET_OPTIMIZED(cvt16s32f), (BinaryFunc)GET_OPTIMIZED(cvt32s32f), (BinaryFunc)cvt32s,
+        (BinaryFunc)GET_OPTIMIZED(cvt64f32f), 0
+    },
+    {
+        (BinaryFunc)GET_OPTIMIZED(cvt8u64f), (BinaryFunc)GET_OPTIMIZED(cvt8s64f), (BinaryFunc)GET_OPTIMIZED(cvt16u64f),
+        (BinaryFunc)GET_OPTIMIZED(cvt16s64f), (BinaryFunc)GET_OPTIMIZED(cvt32s64f), (BinaryFunc)GET_OPTIMIZED(cvt32f64f),
+        (BinaryFunc)(cvt64s), 0
+    },
+    {
+        0, 0, 0, 0, 0, 0, 0, 0
+    }
+};
 
 BinaryFunc getConvertFunc(int sdepth, int ddepth)
 {
-    static BinaryFunc cvtTab[][8] =
-    {
-        {
-            (BinaryFunc)(cvt8u), (BinaryFunc)GET_OPTIMIZED(cvt8s8u), (BinaryFunc)GET_OPTIMIZED(cvt16u8u),
-            (BinaryFunc)GET_OPTIMIZED(cvt16s8u), (BinaryFunc)GET_OPTIMIZED(cvt32s8u), (BinaryFunc)GET_OPTIMIZED(cvt32f8u),
-            (BinaryFunc)GET_OPTIMIZED(cvt64f8u), 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvt8u8s), (BinaryFunc)cvt8u, (BinaryFunc)GET_OPTIMIZED(cvt16u8s),
-            (BinaryFunc)GET_OPTIMIZED(cvt16s8s), (BinaryFunc)GET_OPTIMIZED(cvt32s8s), (BinaryFunc)GET_OPTIMIZED(cvt32f8s),
-            (BinaryFunc)GET_OPTIMIZED(cvt64f8s), 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvt8u16u), (BinaryFunc)GET_OPTIMIZED(cvt8s16u), (BinaryFunc)cvt16u,
-            (BinaryFunc)GET_OPTIMIZED(cvt16s16u), (BinaryFunc)GET_OPTIMIZED(cvt32s16u), (BinaryFunc)GET_OPTIMIZED(cvt32f16u),
-            (BinaryFunc)GET_OPTIMIZED(cvt64f16u), 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvt8u16s), (BinaryFunc)GET_OPTIMIZED(cvt8s16s), (BinaryFunc)GET_OPTIMIZED(cvt16u16s),
-            (BinaryFunc)cvt16u, (BinaryFunc)GET_OPTIMIZED(cvt32s16s), (BinaryFunc)GET_OPTIMIZED(cvt32f16s),
-            (BinaryFunc)GET_OPTIMIZED(cvt64f16s), 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvt8u32s), (BinaryFunc)GET_OPTIMIZED(cvt8s32s), (BinaryFunc)GET_OPTIMIZED(cvt16u32s),
-            (BinaryFunc)GET_OPTIMIZED(cvt16s32s), (BinaryFunc)cvt32s, (BinaryFunc)GET_OPTIMIZED(cvt32f32s),
-            (BinaryFunc)GET_OPTIMIZED(cvt64f32s), 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvt8u32f), (BinaryFunc)GET_OPTIMIZED(cvt8s32f), (BinaryFunc)GET_OPTIMIZED(cvt16u32f),
-            (BinaryFunc)GET_OPTIMIZED(cvt16s32f), (BinaryFunc)GET_OPTIMIZED(cvt32s32f), (BinaryFunc)cvt32s,
-            (BinaryFunc)GET_OPTIMIZED(cvt64f32f), 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvt8u64f), (BinaryFunc)GET_OPTIMIZED(cvt8s64f), (BinaryFunc)GET_OPTIMIZED(cvt16u64f),
-            (BinaryFunc)GET_OPTIMIZED(cvt16s64f), (BinaryFunc)GET_OPTIMIZED(cvt32s64f), (BinaryFunc)GET_OPTIMIZED(cvt32f64f),
-            (BinaryFunc)(cvt64s), 0
-        },
-        {
-            0, 0, 0, 0, 0, 0, 0, 0
-        }
-    };
-
     return cvtTab[CV_MAT_DEPTH(ddepth)][CV_MAT_DEPTH(sdepth)];
 }
 
 BinaryFunc getConvertScaleFunc(int sdepth, int ddepth)
 {
-    static BinaryFunc cvtScaleTab[][8] =
-    {
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvtScale8u), (BinaryFunc)GET_OPTIMIZED(cvtScale8s8u), (BinaryFunc)GET_OPTIMIZED(cvtScale16u8u),
-            (BinaryFunc)GET_OPTIMIZED(cvtScale16s8u), (BinaryFunc)GET_OPTIMIZED(cvtScale32s8u), (BinaryFunc)GET_OPTIMIZED(cvtScale32f8u),
-            (BinaryFunc)cvtScale64f8u, 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvtScale8u8s), (BinaryFunc)GET_OPTIMIZED(cvtScale8s), (BinaryFunc)GET_OPTIMIZED(cvtScale16u8s),
-            (BinaryFunc)GET_OPTIMIZED(cvtScale16s8s), (BinaryFunc)GET_OPTIMIZED(cvtScale32s8s), (BinaryFunc)GET_OPTIMIZED(cvtScale32f8s),
-            (BinaryFunc)cvtScale64f8s, 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvtScale8u16u), (BinaryFunc)GET_OPTIMIZED(cvtScale8s16u), (BinaryFunc)GET_OPTIMIZED(cvtScale16u),
-            (BinaryFunc)GET_OPTIMIZED(cvtScale16s16u), (BinaryFunc)GET_OPTIMIZED(cvtScale32s16u), (BinaryFunc)GET_OPTIMIZED(cvtScale32f16u),
-            (BinaryFunc)cvtScale64f16u, 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvtScale8u16s), (BinaryFunc)GET_OPTIMIZED(cvtScale8s16s), (BinaryFunc)GET_OPTIMIZED(cvtScale16u16s),
-            (BinaryFunc)GET_OPTIMIZED(cvtScale16s), (BinaryFunc)GET_OPTIMIZED(cvtScale32s16s), (BinaryFunc)GET_OPTIMIZED(cvtScale32f16s),
-            (BinaryFunc)cvtScale64f16s, 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvtScale8u32s), (BinaryFunc)GET_OPTIMIZED(cvtScale8s32s), (BinaryFunc)GET_OPTIMIZED(cvtScale16u32s),
-            (BinaryFunc)GET_OPTIMIZED(cvtScale16s32s), (BinaryFunc)GET_OPTIMIZED(cvtScale32s), (BinaryFunc)GET_OPTIMIZED(cvtScale32f32s),
-            (BinaryFunc)cvtScale64f32s, 0
-        },
-        {
-            (BinaryFunc)GET_OPTIMIZED(cvtScale8u32f), (BinaryFunc)GET_OPTIMIZED(cvtScale8s32f), (BinaryFunc)GET_OPTIMIZED(cvtScale16u32f),
-            (BinaryFunc)GET_OPTIMIZED(cvtScale16s32f), (BinaryFunc)GET_OPTIMIZED(cvtScale32s32f), (BinaryFunc)GET_OPTIMIZED(cvtScale32f),
-            (BinaryFunc)cvtScale64f32f, 0
-        },
-        {
-            (BinaryFunc)cvtScale8u64f, (BinaryFunc)cvtScale8s64f, (BinaryFunc)cvtScale16u64f,
-            (BinaryFunc)cvtScale16s64f, (BinaryFunc)cvtScale32s64f, (BinaryFunc)cvtScale32f64f,
-            (BinaryFunc)cvtScale64f, 0
-        },
-        {
-            0, 0, 0, 0, 0, 0, 0, 0
-        }
-    };
-
     return cvtScaleTab[CV_MAT_DEPTH(ddepth)][CV_MAT_DEPTH(sdepth)];
 }
 
@@ -1071,7 +1051,7 @@ void cv::convertScaleAbs( InputArray _src, OutputArray _dst, double alpha, doubl
     double scale[] = {alpha, beta};
     _dst.create( src.dims, src.size, CV_8UC(cn) );
     Mat dst = _dst.getMat();
-    BinaryFunc func = getCvtScaleAbsFunc(src.depth());
+    BinaryFunc func = cvtScaleAbsTab[src.depth()];
     CV_Assert( func != 0 );
 
     if( src.dims <= 2 )

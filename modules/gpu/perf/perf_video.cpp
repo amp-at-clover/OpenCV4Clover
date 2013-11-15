@@ -49,7 +49,6 @@ using namespace perf;
 #if defined(HAVE_XINE)         || \
     defined(HAVE_GSTREAMER)    || \
     defined(HAVE_QUICKTIME)    || \
-    defined(HAVE_QTKIT)        || \
     defined(HAVE_AVFOUNDATION) || \
     defined(HAVE_FFMPEG)       || \
     defined(WIN32) /* assume that we have ffmpeg */
@@ -427,8 +426,8 @@ PERF_TEST_P(ImagePair, Video_OpticalFlowDual_TVL1,
 
         TEST_CYCLE() d_alg(d_frame0, d_frame1, u, v);
 
-        GPU_SANITY_CHECK(u, 1e-1);
-        GPU_SANITY_CHECK(v, 1e-1);
+        GPU_SANITY_CHECK(u, 1e-2);
+        GPU_SANITY_CHECK(v, 1e-2);
     }
     else
     {

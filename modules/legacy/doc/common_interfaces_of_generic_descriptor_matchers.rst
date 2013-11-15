@@ -361,3 +361,4 @@ Wrapping class for computing, matching, and classifying descriptors using the
     protected:
             ...
     };
+

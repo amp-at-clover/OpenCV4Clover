@@ -3,10 +3,7 @@ Video Analysis
 
 .. highlight:: cpp
 
-.. note::
 
-   * A general optical flow example can be found at opencv_source_code/samples/gpu/optical_flow.cpp
-   * A general optical flow example using the Nvidia API can be found at opencv_source_code/samples/gpu/opticalflow_nvidia_api.cpp
 
 gpu::BroxOpticalFlow
 --------------------
@@ -47,9 +44,7 @@ Class computing the optical flow for two images using Brox et al Optical Flow al
         GpuMat buf;
     };
 
-.. note::
 
-   * An example illustrating the Brox et al optical flow algorithm can be found at opencv_source_code/samples/gpu/brox_optical_flow.cpp
 
 gpu::GoodFeaturesToTrackDetector_GPU
 ------------------------------------
@@ -218,9 +213,7 @@ The class can calculate an optical flow for a sparse feature set or dense optica
 
 .. seealso:: :ocv:func:`calcOpticalFlowPyrLK`
 
-.. note::
 
-   * An example of the Lucas Kanade optical flow algorithm can be found at opencv_source_code/samples/gpu/pyrlk_optical_flow.cpp
 
 gpu::PyrLKOpticalFlow::sparse
 -----------------------------
@@ -425,9 +418,7 @@ The class discriminates between foreground and background pixels by building and
 
 .. seealso:: :ocv:class:`BackgroundSubtractorMOG`
 
-.. note::
 
-   * An example on gaussian mixture based background/foreground segmantation can be found at opencv_source_code/samples/gpu/bgfg_segm.cpp
 
 gpu::MOG_GPU::MOG_GPU
 ---------------------
@@ -706,9 +697,7 @@ The class uses H264 video codec.
 
 .. note:: Currently only Windows platform is supported.
 
-.. note::
 
-   * An example on how to use the videoWriter class can be found at opencv_source_code/samples/gpu/video_writer.cpp
 
 gpu::VideoWriter_GPU::VideoWriter_GPU
 -------------------------------------
@@ -921,9 +910,7 @@ Class for reading video from files.
 
 .. note:: Currently only Windows and Linux platforms are supported.
 
-.. note::
 
-   * An example on how to use the videoReader class can be found at opencv_source_code/samples/gpu/video_reader.cpp
 
 gpu::VideoReader_GPU::Codec
 ---------------------------

@@ -120,3 +120,4 @@ void myHarris_function( int, void* )
      }
   imshow( myHarris_window, myHarris_copy );
 }
+

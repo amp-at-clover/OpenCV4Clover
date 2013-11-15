@@ -284,3 +284,5 @@ void CvAdaptiveSkinDetector::Histogram::mergeWith(CvAdaptiveSkinDetector::Histog
         }
     }
 };
+
+

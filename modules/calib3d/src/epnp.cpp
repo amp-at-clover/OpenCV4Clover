@@ -622,3 +622,4 @@ void epnp::qr_solve(CvMat * A, CvMat * b, CvMat * X)
     pX[i] = (pb[i] - sum) / A2[i];
   }
 }
+

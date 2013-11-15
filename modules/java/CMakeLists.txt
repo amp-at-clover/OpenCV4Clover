@@ -41,8 +41,6 @@ file(GLOB handwrittren_aidl_sources  "${CMAKE_CURRENT_SOURCE_DIR}/generator/src/
 if(NOT ANDROID)
   ocv_list_filterout(handwrittren_java_sources "/(engine|android)\\\\+")
   ocv_list_filterout(handwrittren_aidl_sources "/(engine|android)\\\\+")
-  ocv_list_filterout(handwrittren_java_sources "VideoCapture")
-  ocv_list_filterout(handwrittren_cpp_sources "VideoCapture")
 else()
   file(GLOB_RECURSE handwrittren_lib_project_files_rel RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/android_lib/" "${CMAKE_CURRENT_SOURCE_DIR}/android_lib/*")
   list(REMOVE_ITEM handwrittren_lib_project_files_rel "${ANDROID_MANIFEST_FILE}")
@@ -102,15 +100,9 @@ foreach(module ${OPENCV_JAVA_MODULES})
   # first run of gen_java.py (to get list of generated files)
   file(REMOVE_RECURSE "${CMAKE_CURRENT_BINARY_DIR}/gen_java_out/")
   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/gen_java_out")
-  if (ANDROID)
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} "${scripts_gen_java}" "${scripts_hdr_parser}" "-android" ${module} ${opencv_public_headers_${module}}
+  execute_process(COMMAND ${PYTHON_EXECUTABLE} "${scripts_gen_java}" "${scripts_hdr_parser}" ${module} ${opencv_public_headers_${module}}
                   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/gen_java_out"
                   OUTPUT_QUIET ERROR_QUIET)
-  else()
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} "${scripts_gen_java}" "${scripts_hdr_parser}" ${module} ${opencv_public_headers_${module}}
-                  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/gen_java_out"
-                  OUTPUT_QUIET ERROR_QUIET)
-  endif()
   unset(generated_java_sources_${module})
   file(GLOB_RECURSE generated_java_sources_${module} RELATIVE "${CMAKE_CURRENT_BINARY_DIR}/gen_java_out/" "${CMAKE_CURRENT_BINARY_DIR}/gen_java_out/*.java")
   ocv_list_add_prefix(generated_java_sources_${module} "${CMAKE_CURRENT_BINARY_DIR}/")
@@ -131,19 +123,11 @@ endforeach()
 set(step1_depends "${scripts_gen_java}" "${scripts_hdr_parser}" ${opencv_public_headers})
 foreach(module ${OPENCV_JAVA_MODULES})
   # second run of gen_java.py (at build time)
-  if (ANDROID)
-    add_custom_command(OUTPUT ${generated_java_sources_${module}} "${CMAKE_CURRENT_BINARY_DIR}/${module}.cpp"
-                     COMMAND ${PYTHON_EXECUTABLE} "${scripts_gen_java}" "${scripts_hdr_parser}" "-android" ${module} ${opencv_public_headers_${module}}
-                     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                     DEPENDS "${scripts_gen_java}" "${scripts_hdr_parser}" ${opencv_public_headers_${module}}
-                    )
-  else()
-    add_custom_command(OUTPUT ${generated_java_sources_${module}} "${CMAKE_CURRENT_BINARY_DIR}/${module}.cpp"
+  add_custom_command(OUTPUT ${generated_java_sources_${module}} "${CMAKE_CURRENT_BINARY_DIR}/${module}.cpp"
                      COMMAND ${PYTHON_EXECUTABLE} "${scripts_gen_java}" "${scripts_hdr_parser}" ${module} ${opencv_public_headers_${module}}
                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                      DEPENDS "${scripts_gen_java}" "${scripts_hdr_parser}" ${opencv_public_headers_${module}}
                     )
-  endif()
 endforeach()
 
 # step 2: generate javadoc comments
@@ -209,7 +193,7 @@ if(ANDROID AND ANDROID_EXECUTABLE)
   set(lib_target_files ${ANDROID_LIB_PROJECT_FILES})
   ocv_list_add_prefix(lib_target_files "${OpenCV_BINARY_DIR}/")
 
-  android_get_compatible_target(lib_target_sdk_target ${ANDROID_NATIVE_API_LEVEL} ${ANDROID_SDK_TARGET} 14)
+  android_get_compatible_target(lib_target_sdk_target ${ANDROID_NATIVE_API_LEVEL} ${ANDROID_SDK_TARGET} 11)
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/android_lib/${ANDROID_MANIFEST_FILE}" "${CMAKE_CURRENT_BINARY_DIR}/${ANDROID_MANIFEST_FILE}" @ONLY)
 
   add_custom_command(OUTPUT ${lib_target_files} "${OpenCV_BINARY_DIR}/${ANDROID_MANIFEST_FILE}"
@@ -290,12 +274,7 @@ add_library(${the_module} SHARED ${handwrittren_h_sources} ${handwrittren_cpp_so
                                 "${JAR_FILE}" "${JAR_FILE}.dephelper")
 if(BUILD_FAT_JAVA_LIB)
   set(__deps ${OPENCV_MODULE_${the_module}_DEPS} ${OPENCV_MODULES_BUILD})
-  foreach(m ${OPENCV_MODULES_BUILD}) # filterout INTERNAL (like opencv_ts) and BINDINGS (like opencv_python) modules
-    ocv_assert(DEFINED OPENCV_MODULE_${m}_CLASS)
-    if(NOT OPENCV_MODULE_${m}_CLASS STREQUAL "PUBLIC")
-      list(REMOVE_ITEM __deps ${m})
-    endif()
-  endforeach()
+  list(REMOVE_ITEM __deps ${the_module} opencv_ts)
   ocv_list_unique(__deps)
   set(__extradeps ${__deps})
   ocv_list_filterout(__extradeps "^opencv_")
@@ -345,19 +324,13 @@ if(ENABLE_SOLUTION_FOLDERS)
 endif()
 
 if(ANDROID)
-  ocv_install_target(${the_module} EXPORT OpenCVModules
+  install(TARGETS ${the_module}
           LIBRARY DESTINATION ${OPENCV_LIB_INSTALL_PATH} COMPONENT main
           ARCHIVE DESTINATION ${OPENCV_LIB_INSTALL_PATH} COMPONENT main)
 else()
-  if(NOT INSTALL_CREATE_DISTRIB)
-    ocv_install_target(${the_module} EXPORT OpenCVModules
-            RUNTIME DESTINATION ${JAR_INSTALL_DIR} COMPONENT main
-            LIBRARY DESTINATION ${JAR_INSTALL_DIR} COMPONENT main)
-  else()
-    ocv_install_target(${the_module} EXPORT OpenCVModules
-            RUNTIME DESTINATION ${JAR_INSTALL_DIR}/${OpenCV_ARCH} COMPONENT main
-            LIBRARY DESTINATION ${JAR_INSTALL_DIR}/${OpenCV_ARCH} COMPONENT main)
-  endif()
+  install(TARGETS ${the_module}
+          RUNTIME DESTINATION ${JAR_INSTALL_DIR} COMPONENT main
+          LIBRARY DESTINATION ${JAR_INSTALL_DIR} COMPONENT main)
 endif()
 
 ######################################################################################################################################

@@ -1087,7 +1087,12 @@ cvShowImage( const char* name, const CvArr* arr )
     window = icvFindWindowByName(name);
     if(!window)
     {
-        cvNamedWindow(name, CV_WINDOW_AUTOSIZE);
+        #ifndef HAVE_OPENGL
+            cvNamedWindow(name, CV_WINDOW_AUTOSIZE);
+        #else
+            cvNamedWindow(name, CV_WINDOW_AUTOSIZE | CV_WINDOW_OPENGL);
+        #endif
+
         window = icvFindWindowByName(name);
     }
 

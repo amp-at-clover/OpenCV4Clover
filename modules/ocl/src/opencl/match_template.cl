@@ -25,7 +25,7 @@
 //
 //   * Redistribution's in binary form must reproduce the above copyright notice,
 //     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
+//     and/or other oclMaterials provided with the distribution.
 //
 //   * The name of the copyright holders may not be used to endorse or promote products
 //     derived from this software without specific prior written permission.
@@ -42,6 +42,8 @@
 // the use of this software, even if advised of the possibility of such damage.
 //
 //M*/
+
+#pragma OPENCL EXTENSION cl_amd_printf : enable
 
 #if defined (DOUBLE_SUPPORT)
 
@@ -68,7 +70,7 @@
 #define SUMS_PTR(ox, oy) mad24(gidy + oy, img_sums_step, gidx + img_sums_offset + ox)
 // normAcc* are accurate normalization routines which make GPU matchTemplate
 // consistent with CPU one
-inline float normAcc(float num, float denum)
+float normAcc(float num, float denum)
 {
     if(fabs(num) < denum)
     {
@@ -81,7 +83,7 @@ inline float normAcc(float num, float denum)
     return 0;
 }
 
-inline float normAcc_SQDIFF(float num, float denum)
+float normAcc_SQDIFF(float num, float denum)
 {
     if(fabs(num) < denum)
     {

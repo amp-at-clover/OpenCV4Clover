@@ -357,7 +357,6 @@ void Retina::_init(const cv::Size inputSz, const bool colorMode, RETINA_COLORSAM
            delete _retinaFilter;
     _retinaFilter = new RetinaFilter(inputSz.height, inputSz.width, colorMode, colorSamplingMethod, useRetinaLogSampling, reductionFactor, samplingStrenght);
 
-    _retinaParameters.OPLandIplParvo.colorMode = colorMode;
     // prepare the default parameter XML file with default setup
         setup(_retinaParameters);
 
@@ -461,3 +460,4 @@ void Retina::activateMovingContoursProcessing(const bool activate){_retinaFilter
 void Retina::activateContoursProcessing(const bool activate){_retinaFilter->activateContoursProcessing(activate);}
 
 } // end of namespace cv
+

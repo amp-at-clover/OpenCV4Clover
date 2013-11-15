@@ -13,9 +13,9 @@
 using namespace cv;
 using namespace std;
 
-#define ACCURACY_CHECK
+#define ACCURACY_CHECK 1
 
-#ifdef ACCURACY_CHECK
+#if ACCURACY_CHECK
 // check if two vectors of vector of points are near or not
 // prior assumption is that they are in correct order
 static bool checkPoints(
@@ -278,31 +278,29 @@ int main(int argc, char** argv)
 {
     const char* keys =
         "{ i | input   |                    | specify input image }"
-        "{ o | output  | squares_output.jpg | specify output save path}"
-        "{ h | help    | false              | print help message }";
+        "{ o | output  | squares_output.jpg | specify output save path}";
     CommandLineParser cmd(argc, argv, keys);
     string inputName = cmd.get<string>("i");
     string outfile = cmd.get<string>("o");
-
-    if(cmd.get<bool>("help"))
+    if(inputName.empty())
     {
-        cout << "Usage : squares [options]" << endl;
-        cout << "Available options:" << endl;
+        cout << "Avaible options:" << endl;
         cmd.printParams();
-        return EXIT_SUCCESS;
+        return 0;
     }
 
+    vector<ocl::Info> info;
+    CV_Assert(ocl::getDevice(info));
     int iterations = 10;
-    namedWindow( wndname, CV_WINDOW_AUTOSIZE );
+    namedWindow( wndname, 1 );
     vector<vector<Point> > squares_cpu, squares_ocl;
 
     Mat image = imread(inputName, 1);
     if( image.empty() )
     {
         cout << "Couldn't load " << inputName << endl;
-        return EXIT_FAILURE;
+        return -1;
     }
-
     int j = iterations;
     int64 t_ocl = 0, t_cpp = 0;
     //warm-ups
@@ -311,7 +309,7 @@ int main(int argc, char** argv)
     findSquares_ocl(image, squares_ocl);
 
 
-#ifdef ACCURACY_CHECK
+#if ACCURACY_CHECK
     cout << "Checking ocl accuracy ... " << endl;
     cout << (checkPoints(squares_cpu, squares_ocl) ? "Pass" : "Failed") << endl;
 #endif
@@ -336,5 +334,5 @@ int main(int argc, char** argv)
     imwrite(outfile, result);
     cvWaitKey(0);
 
-    return EXIT_SUCCESS;
+    return 0;
 }

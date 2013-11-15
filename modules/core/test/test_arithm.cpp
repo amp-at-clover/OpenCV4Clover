@@ -1123,7 +1123,7 @@ struct MeanOp : public BaseElemWiseOp
     }
     double getMaxErr(int)
     {
-        return 1e-5;
+        return 1e-6;
     }
 };
 

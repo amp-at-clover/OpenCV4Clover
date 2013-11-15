@@ -343,9 +343,9 @@ void CvCapture_FFMPEG::close()
 class ImplMutex
 {
 public:
-    ImplMutex() { init(); }
-    ~ImplMutex() { destroy(); }
-
+	ImplMutex() { init(); }
+	~ImplMutex() { destroy(); }
+	
     void init();
     void destroy();
 
@@ -366,15 +366,7 @@ private:
 
 struct ImplMutex::Impl
 {
-    void init()
-    {
-#if (_WIN32_WINNT >= 0x0600)
-        ::InitializeCriticalSectionEx(&cs, 1000, 0);
-#else
-        ::InitializeCriticalSection(&cs);
-#endif
-        refcount = 1;
-    }
+    void init() { InitializeCriticalSection(&cs); refcount = 1; }
     void destroy() { DeleteCriticalSection(&cs); }
 
     void lock() { EnterCriticalSection(&cs); }
@@ -447,14 +439,14 @@ struct ImplMutex::Impl
 
 void ImplMutex::init()
 {
-    impl = (Impl*)malloc(sizeof(Impl));
-    impl->init();
+	impl = (Impl*)malloc(sizeof(Impl));
+	impl->init();
 }
-void ImplMutex::destroy()
+void ImplMutex::destroy() 
 {
-    impl->destroy();
-    free(impl);
-    impl = NULL;
+	impl->destroy();
+	free(impl);
+	impl = NULL;
 }
 void ImplMutex::lock() { impl->lock(); }
 void ImplMutex::unlock() { impl->unlock(); }
@@ -1370,6 +1362,8 @@ bool CvVideoWriter_FFMPEG::writeFrame( const unsigned char* data, int step, int 
 /// close video output stream and free associated memory
 void CvVideoWriter_FFMPEG::close()
 {
+    unsigned i;
+
     // nothing to do if already released
     if ( !picture )
         return;
@@ -1425,6 +1419,13 @@ void CvVideoWriter_FFMPEG::close()
 
     av_free(outbuf);
 
+    /* free the streams */
+    for(i = 0; i < oc->nb_streams; i++)
+    {
+        av_freep(&oc->streams[i]->codec);
+        av_freep(&oc->streams[i]);
+    }
+
     if (!(fmt->flags & AVFMT_NOFILE))
     {
         /* close the output file */
@@ -1442,7 +1443,7 @@ void CvVideoWriter_FFMPEG::close()
     }
 
     /* free the stream */
-    avformat_free_context(oc);
+    av_free(oc);
 
     if( temp_image.data )
     {

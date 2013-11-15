@@ -65,3 +65,4 @@ CvSeq * cvPostBoostingFindFace(IplImage * Image,CvMemStorage* lpStorage)
 
     return lpSeq;
 }//cvPostBoostingFindFace(IplImage * Image)
+

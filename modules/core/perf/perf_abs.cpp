@@ -24,3 +24,4 @@ PERF_TEST_P(Size_MatType, abs, TYPICAL_MATS_ABS)
 
     SANITY_CHECK(c);
 }
+

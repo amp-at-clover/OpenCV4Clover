@@ -338,3 +338,5 @@ namespace cv
 }
 
 #endif /*RETINACOLOR_HPP_*/
+
+

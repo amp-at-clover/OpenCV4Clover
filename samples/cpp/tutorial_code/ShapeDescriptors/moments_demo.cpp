@@ -92,3 +92,4 @@ void thresh_callback(int, void* )
        circle( drawing, mc[i], 4, color, -1, 8, 0 );
      }
 }
+

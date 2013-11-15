@@ -26,7 +26,7 @@
 //
 //   * Redistribution's in binary form must reproduce the above copyright notice,
 //     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
+//     and/or other oclMaterials provided with the distribution.
 //
 //   * The name of the copyright holders may not be used to endorse or promote products
 //     derived from this software without specific prior written permission.
@@ -43,192 +43,144 @@
 // the use of this software, even if advised of the possibility of such damage.
 //
 //M*/
-#include "perf_precomp.hpp"
-
-using namespace perf;
-using std::tr1::tuple;
-using std::tr1::get;
+#include "precomp.hpp"
 
 ///////////// ConvertTo////////////////////////
-
-typedef Size_MatType ConvertToFixture;
-
-PERF_TEST_P(ConvertToFixture, ConvertTo,
-            ::testing::Combine(OCL_TYPICAL_MAT_SIZES,
-                               OCL_PERF_ENUM(CV_8UC1, CV_8UC4)))
+PERFTEST(ConvertTo)
 {
-    const Size_MatType_t params = GetParam();
-    const Size srcSize = get<0>(params);
-    const int type = get<1>(params);
+    Mat src, dst, ocl_dst;
+    ocl::oclMat d_src, d_dst;
 
-    Mat src(srcSize, type), dst;
-    const int dstType = CV_MAKE_TYPE(CV_32F, src.channels());
-    dst.create(srcSize, dstType);
-    declare.in(src, WARMUP_RNG).out(dst);
+    int all_type[] = {CV_8UC1, CV_8UC4};
+    std::string type_name[] = {"CV_8UC1", "CV_8UC4"};
 
-    if (RUN_OCL_IMPL)
+    for (int size = Min_Size; size <= Max_Size; size *= Multiple)
     {
-        ocl::oclMat oclSrc(src), oclDst(srcSize, dstType);
+        for (size_t j = 0; j < sizeof(all_type) / sizeof(int); j++)
+        {
+            SUBTEST << size << 'x' << size << "; " << type_name[j] << " to 32FC1";
 
-        OCL_TEST_CYCLE() oclSrc.convertTo(oclDst, dstType);
+            gen(src, size, size, all_type[j], 0, 256);
+            //gen(dst, size, size, all_type[j], 0, 256);
 
-        oclDst.download(dst);
+            //d_dst.upload(dst);
 
-        SANITY_CHECK(dst);
+            src.convertTo(dst, CV_32FC1);
+
+            CPU_ON;
+            src.convertTo(dst, CV_32FC1);
+            CPU_OFF;
+
+            d_src.upload(src);
+
+            WARMUP_ON;
+            d_src.convertTo(d_dst, CV_32FC1);
+            WARMUP_OFF;
+
+            GPU_ON;
+            d_src.convertTo(d_dst, CV_32FC1);
+            GPU_OFF;
+
+            GPU_FULL_ON;
+            d_src.upload(src);
+            d_src.convertTo(d_dst, CV_32FC1);
+            d_dst.download(ocl_dst);
+            GPU_FULL_OFF;
+
+            TestSystem::instance().ExpectedMatNear(dst, ocl_dst, 0.0);
+        }
+
     }
-    else if (RUN_PLAIN_IMPL)
-    {
-        TEST_CYCLE() src.convertTo(dst, dstType);
-
-        SANITY_CHECK(dst);
-    }
-    else
-        OCL_PERF_ELSE
 }
-
 ///////////// copyTo////////////////////////
-
-typedef Size_MatType copyToFixture;
-
-PERF_TEST_P(copyToFixture, copyTo,
-            ::testing::Combine(OCL_TYPICAL_MAT_SIZES,
-                               OCL_PERF_ENUM(CV_8UC1, CV_8UC4)))
+PERFTEST(copyTo)
 {
-    const Size_MatType_t params = GetParam();
-    const Size srcSize = get<0>(params);
-    const int type = get<1>(params);
+    Mat src, dst, ocl_dst;
+    ocl::oclMat d_src, d_dst;
 
-    Mat src(srcSize, type), dst(srcSize, type);
-    declare.in(src, WARMUP_RNG).out(dst);
+    int all_type[] = {CV_8UC1, CV_8UC4};
+    std::string type_name[] = {"CV_8UC1", "CV_8UC4"};
 
-    if (RUN_OCL_IMPL)
+    for (int size = Min_Size; size <= Max_Size; size *= Multiple)
     {
-        ocl::oclMat oclSrc(src), oclDst(srcSize, type);
+        for (size_t j = 0; j < sizeof(all_type) / sizeof(int); j++)
+        {
+            SUBTEST << size << 'x' << size << "; " << type_name[j] ;
 
-        OCL_TEST_CYCLE() oclSrc.copyTo(oclDst);
+            gen(src, size, size, all_type[j], 0, 256);
+            //gen(dst, size, size, all_type[j], 0, 256);
 
-        oclDst.download(dst);
+            //d_dst.upload(dst);
 
-        SANITY_CHECK(dst);
+            src.copyTo(dst);
+
+            CPU_ON;
+            src.copyTo(dst);
+            CPU_OFF;
+
+            d_src.upload(src);
+
+            WARMUP_ON;
+            d_src.copyTo(d_dst);
+            WARMUP_OFF;
+
+            GPU_ON;
+            d_src.copyTo(d_dst);
+            GPU_OFF;
+
+            GPU_FULL_ON;
+            d_src.upload(src);
+            d_src.copyTo(d_dst);
+            d_dst.download(ocl_dst);
+            GPU_FULL_OFF;
+
+            TestSystem::instance().ExpectedMatNear(dst, ocl_dst, 0.0);
+        }
+
     }
-    else if (RUN_PLAIN_IMPL)
-    {
-        TEST_CYCLE() src.copyTo(dst);
-
-        SANITY_CHECK(dst);
-    }
-    else
-        OCL_PERF_ELSE
 }
-
 ///////////// setTo////////////////////////
-
-typedef Size_MatType setToFixture;
-
-PERF_TEST_P(setToFixture, setTo,
-            ::testing::Combine(OCL_TYPICAL_MAT_SIZES,
-                               OCL_PERF_ENUM(CV_8UC1, CV_8UC4)))
+PERFTEST(setTo)
 {
-    const Size_MatType_t params = GetParam();
-    const Size srcSize = get<0>(params);
-    const int type = get<1>(params);
-    const Scalar val(1, 2, 3, 4);
+    Mat src, ocl_src;
+    Scalar val(1, 2, 3, 4);
+    ocl::oclMat d_src;
 
-    Mat src(srcSize, type);
-    declare.in(src);
+    int all_type[] = {CV_8UC1, CV_8UC4};
+    std::string type_name[] = {"CV_8UC1", "CV_8UC4"};
 
-    if (RUN_OCL_IMPL)
+    for (int size = Min_Size; size <= Max_Size; size *= Multiple)
     {
-        ocl::oclMat oclSrc(srcSize, type);
+        for (size_t j = 0; j < sizeof(all_type) / sizeof(int); j++)
+        {
+            SUBTEST << size << 'x' << size << "; " << type_name[j] ;
 
-        OCL_TEST_CYCLE() oclSrc.setTo(val);
-        oclSrc.download(src);
+            gen(src, size, size, all_type[j], 0, 256);
 
-        SANITY_CHECK(src);
+            src.setTo(val);
+
+            CPU_ON;
+            src.setTo(val);
+            CPU_OFF;
+
+            d_src.upload(src);
+
+            WARMUP_ON;
+            d_src.setTo(val);
+            WARMUP_OFF;
+
+            d_src.download(ocl_src);
+            TestSystem::instance().ExpectedMatNear(src, ocl_src, 1.0);
+
+            GPU_ON;;
+            d_src.setTo(val);
+            GPU_OFF;
+
+            GPU_FULL_ON;
+            d_src.upload(src);
+            d_src.setTo(val);
+            GPU_FULL_OFF;
+        }
+
     }
-    else if (RUN_PLAIN_IMPL)
-    {
-        TEST_CYCLE() src.setTo(val);
-
-        SANITY_CHECK(src);
-    }
-    else
-        OCL_PERF_ELSE
 }
-
-#if 0
-
-/////////////////// upload ///////////////////////////
-
-typedef tuple<Size, MatDepth, int> uploadParams;
-typedef TestBaseWithParam<uploadParams> uploadFixture;
-
-PERF_TEST_P(uploadFixture, upload,
-            testing::Combine(
-                OCL_TYPICAL_MAT_SIZES,
-                testing::Values(CV_8U, CV_8S, CV_16U, CV_16S, CV_32S, CV_32F),
-                testing::Range(1, 5)))
-{
-    const uploadParams params = GetParam();
-    const Size srcSize = get<0>(params);
-    const int depth = get<1>(params), cn = get<2>(params);
-    const int type = CV_MAKE_TYPE(depth, cn);
-
-    Mat src(srcSize, type), dst;
-    declare.in(src, WARMUP_RNG);
-
-    if (RUN_OCL_IMPL)
-    {
-        ocl::oclMat oclDst;
-
-        for(; startTimer(), next(); ocl::finish(), stopTimer(), oclDst.release())
-            oclDst.upload(src);
-    }
-    else if (RUN_PLAIN_IMPL)
-    {
-        for(; startTimer(), next(); ocl::finish(), stopTimer(), dst.release())
-            dst = src.clone();
-    }
-    else
-        OCL_PERF_ELSE
-
-    SANITY_CHECK_NOTHING();
-}
-
-/////////////////// download ///////////////////////////
-
-typedef TestBaseWithParam<uploadParams> downloadFixture;
-
-PERF_TEST_P(downloadFixture, download,
-            testing::Combine(
-                OCL_TYPICAL_MAT_SIZES,
-                testing::Values(CV_8U, CV_8S, CV_16U, CV_16S, CV_32S, CV_32F),
-                testing::Range(1, 5)))
-{
-    const uploadParams params = GetParam();
-    const Size srcSize = get<0>(params);
-    const int depth = get<1>(params), cn = get<2>(params);
-    const int type = CV_MAKE_TYPE(depth, cn);
-
-    Mat src(srcSize, type), dst;
-    declare.in(src, WARMUP_RNG);
-
-    if (RUN_OCL_IMPL)
-    {
-        ocl::oclMat oclSrc(src);
-
-        for(; startTimer(), next(); ocl::finish(), stopTimer(), dst.release())
-            oclSrc.download(dst);
-    }
-    else if (RUN_PLAIN_IMPL)
-    {
-        for(; startTimer(), next(); ocl::finish(), stopTimer(), dst.release())
-            dst = src.clone();
-    }
-    else
-        OCL_PERF_ELSE
-
-    SANITY_CHECK_NOTHING();
-}
-
-#endif

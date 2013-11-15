@@ -23,3 +23,5 @@ FOREACH(file ${files})
     MESSAGE(STATUS "File \"$ENV{DESTDIR}${file}\" does not exist.")
   ENDIF(EXISTS "$ENV{DESTDIR}${file}")
 ENDFOREACH(file)
+
+

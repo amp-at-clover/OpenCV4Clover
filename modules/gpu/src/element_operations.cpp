@@ -1993,7 +1993,7 @@ void cv::gpu::bitwise_not(const GpuMat& src, GpuMat& dst, const GpuMat& mask, St
     }
     else
     {
-        bitMatNot<unsigned char>(
+        bitMatNot<unsigned short>(
                     PtrStepSzb(src.rows, bcols, src.data, src.step),
                     PtrStepSzb(src.rows, bcols, dst.data, dst.step),
                     mask, stream);
@@ -2040,7 +2040,7 @@ void cv::gpu::bitwise_and(const GpuMat& src1, const GpuMat& src2, GpuMat& dst, c
     {
         const int vcols = bcols >> 1;
 
-        bitMatAnd<unsigned short>(
+        bitMatAnd<unsigned int>(
                     PtrStepSzb(src1.rows, vcols, src1.data, src1.step),
                     PtrStepSzb(src1.rows, vcols, src2.data, src2.step),
                     PtrStepSzb(src1.rows, vcols, dst.data, dst.step),
@@ -2049,7 +2049,7 @@ void cv::gpu::bitwise_and(const GpuMat& src1, const GpuMat& src2, GpuMat& dst, c
     else
     {
 
-        bitMatAnd<unsigned char>(
+        bitMatAnd<unsigned int>(
                     PtrStepSzb(src1.rows, bcols, src1.data, src1.step),
                     PtrStepSzb(src1.rows, bcols, src2.data, src2.step),
                     PtrStepSzb(src1.rows, bcols, dst.data, dst.step),
@@ -2087,7 +2087,7 @@ void cv::gpu::bitwise_or(const GpuMat& src1, const GpuMat& src2, GpuMat& dst, co
     {
         const int vcols = bcols >> 1;
 
-        bitMatOr<unsigned short>(
+        bitMatOr<unsigned int>(
                     PtrStepSzb(src1.rows, vcols, src1.data, src1.step),
                     PtrStepSzb(src1.rows, vcols, src2.data, src2.step),
                     PtrStepSzb(src1.rows, vcols, dst.data, dst.step),
@@ -2096,7 +2096,7 @@ void cv::gpu::bitwise_or(const GpuMat& src1, const GpuMat& src2, GpuMat& dst, co
     else
     {
 
-        bitMatOr<unsigned char>(
+        bitMatOr<unsigned int>(
                     PtrStepSzb(src1.rows, bcols, src1.data, src1.step),
                     PtrStepSzb(src1.rows, bcols, src2.data, src2.step),
                     PtrStepSzb(src1.rows, bcols, dst.data, dst.step),
@@ -2134,7 +2134,7 @@ void cv::gpu::bitwise_xor(const GpuMat& src1, const GpuMat& src2, GpuMat& dst, c
     {
         const int vcols = bcols >> 1;
 
-        bitMatXor<unsigned short>(
+        bitMatXor<unsigned int>(
                     PtrStepSzb(src1.rows, vcols, src1.data, src1.step),
                     PtrStepSzb(src1.rows, vcols, src2.data, src2.step),
                     PtrStepSzb(src1.rows, vcols, dst.data, dst.step),
@@ -2143,7 +2143,7 @@ void cv::gpu::bitwise_xor(const GpuMat& src1, const GpuMat& src2, GpuMat& dst, c
     else
     {
 
-        bitMatXor<unsigned char>(
+        bitMatXor<unsigned int>(
                     PtrStepSzb(src1.rows, bcols, src1.data, src1.step),
                     PtrStepSzb(src1.rows, bcols, src2.data, src2.step),
                     PtrStepSzb(src1.rows, bcols, dst.data, dst.step),

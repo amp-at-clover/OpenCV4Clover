@@ -563,3 +563,4 @@ bool  BmpEncoder::write( const Mat& img, const vector<int>& )
 }
 
 }
+

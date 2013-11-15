@@ -30,7 +30,7 @@
 //
 //   * Redistribution's in binary form must reproduce the above copyright notice,
 //     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
+//     and/or other oclMaterials provided with the distribution.
 //
 //   * The name of the copyright holders may not be used to endorse or promote products
 //     derived from this software without specific prior written permission.
@@ -49,10 +49,24 @@
 //M*/
 
 #include "precomp.hpp"
-#include "opencl_kernels.hpp"
+#include <stdio.h>
+#include <string>
 
 using namespace cv;
 using namespace cv::ocl;
+using namespace std;
+
+
+namespace cv
+{
+namespace ocl
+{
+///////////////////////////OpenCL kernel strings///////////////////////////
+extern const char *haarobjectdetect;
+extern const char *haarobjectdetectbackup;
+extern const char *haarobjectdetect_scaled2;
+}
+}
 
 /* these settings affect the quality of detection: change with care */
 #define CV_ADJUST_FEATURES 1
@@ -248,7 +262,7 @@ static GpuHidHaarClassifierCascade * gpuCreateHidHaarClassifierCascade( CvHaarCl
     int datasize;
     int total_classifiers = 0;
     int total_nodes = 0;
-    char errorstr[256];
+    char errorstr[100];
 
     GpuHidHaarStageClassifier *stage_classifier_ptr;
     GpuHidHaarClassifier *haar_classifier_ptr;
@@ -625,21 +639,37 @@ static void gpuSetHaarClassifierCascade( CvHaarClassifierCascade *_cascade)
     cascade->p3 = equRect.width ;
     for( i = 0; i < _cascade->count; i++ )
     {
-        int j, l;
+        int j, k, l;
         for( j = 0; j < stage_classifier[i].count; j++ )
         {
             for( l = 0; l < stage_classifier[i].classifier[j].count; l++ )
             {
-                const CvHaarFeature *feature =
+                CvHaarFeature *feature =
                     &_cascade->stage_classifier[i].classifier[j].haar_feature[l];
                 GpuHidHaarTreeNode *hidnode = &stage_classifier[i].classifier[j].node[l];
+                CvRect r[3];
 
-                for( int k = 0; k < CV_HAAR_FEATURE_MAX; k++ )
+
+                int nr;
+
+                /* align blocks */
+                for( k = 0; k < CV_HAAR_FEATURE_MAX; k++ )
                 {
-                    const CvRect tr = feature->rect[k].r;
-                    if (tr.width == 0)
+                    if(!hidnode->p[k][0])
                         break;
-                    double correction_ratio = weight_scale * (!feature->tilted ? 1 : 0.5);
+                    r[k] = feature->rect[k].r;
+               }
+
+                nr = k;
+                for( k = 0; k < nr; k++ )
+                {
+                    CvRect tr;
+                    double correction_ratio;
+                    tr.x = r[k].x;
+                    tr.width = r[k].width;
+                    tr.y = r[k].y ;
+                    tr.height = r[k].height;
+                    correction_ratio = weight_scale * (!feature->tilted ? 1 : 0.5);
                     hidnode->p[k][0] = tr.x;
                     hidnode->p[k][1] = tr.y;
                     hidnode->p[k][2] = tr.width;
@@ -715,7 +745,7 @@ CvSeq *cv::ocl::OclCascadeClassifier::oclHaarDetectObjects( oclMat &gimg, CvMemS
     if( gimg.cols < minSize.width || gimg.rows < minSize.height )
         CV_Error(CV_StsError, "Image too small");
 
-    cl_command_queue qu = getClCommandQueue(Context::getContext());
+    cl_command_queue qu = reinterpret_cast<cl_command_queue>(Context::getContext()->oclCommandQueue());
     if( (flags & CV_HAAR_SCALE_IMAGE) )
     {
         CvSize winSize0 = cascade->orig_window_size;
@@ -758,7 +788,7 @@ CvSeq *cv::ocl::OclCascadeClassifier::oclHaarDetectObjects( oclMat &gimg, CvMemS
 
         size_t blocksize = 8;
         size_t localThreads[3] = { blocksize, blocksize , 1 };
-        size_t globalThreads[3] = { grp_per_CU *(gsum.clCxt->getDeviceInfo().maxComputeUnits) *localThreads[0],
+        size_t globalThreads[3] = { grp_per_CU *(gsum.clCxt->computeUnits()) *localThreads[0],
                                     localThreads[1], 1
                                   };
         int outputsz = 256 * globalThreads[0] / localThreads[0];
@@ -849,138 +879,16 @@ CvSeq *cv::ocl::OclCascadeClassifier::oclHaarDetectObjects( oclMat &gimg, CvMemS
         args.push_back ( make_pair(sizeof(cl_int4) , (void *)&pq ));
         args.push_back ( make_pair(sizeof(cl_float) , (void *)&correction ));
 
-        if(gcascade->is_stump_based && gsum.clCxt->supportsFeature(FEATURE_CL_INTEL_DEVICE))
-        {
-            //setup local group size
-            localThreads[0] = 8;
-            localThreads[1] = 16;
-            localThreads[2] = 1;
+        const char * build_options = gcascade->is_stump_based ? "-D STUMP_BASED=1" : "-D STUMP_BASED=0";
 
-            //init maximal number of workgroups
-            int WGNumX = 1+(sizev[0].width /(localThreads[0]));
-            int WGNumY = 1+(sizev[0].height/(localThreads[1]));
-            int WGNumZ = loopcount;
-            int WGNum = 0; //accurate number of non -empty workgroups
-            oclMat      oclWGInfo(1,sizeof(cl_int4) * WGNumX*WGNumY*WGNumZ,CV_8U);
-            {
-                cl_int4*    pWGInfo = (cl_int4*)clEnqueueMapBuffer(getClCommandQueue(oclWGInfo.clCxt),(cl_mem)oclWGInfo.datastart,true,CL_MAP_WRITE, 0, oclWGInfo.step, 0,0,0,&status);
-                openCLVerifyCall(status);
-                for(int z=0;z<WGNumZ;++z)
-                {
-                    int     Width  = (scaleinfo[z].width_height >> 16)&0xFFFF;
-                    int     Height = (scaleinfo[z].width_height >> 0 )& 0xFFFF;
-                    for(int y=0;y<WGNumY;++y)
-                    {
-                        int     gy = y*localThreads[1];
-                        if(gy>=(Height-cascade->orig_window_size.height))
-                            continue; // no data to process
-                        for(int x=0;x<WGNumX;++x)
-                        {
-                            int     gx = x*localThreads[0];
-                            if(gx>=(Width-cascade->orig_window_size.width))
-                                continue; // no data to process
+        openCLExecuteKernel(gsum.clCxt, &haarobjectdetect, "gpuRunHaarClassifierCascade", globalThreads, localThreads, args, -1, -1, build_options);
 
-                            // save no-empty workgroup info into array
-                            pWGInfo[WGNum].s[0] = scaleinfo[z].width_height;
-                            pWGInfo[WGNum].s[1] = (gx << 16) | gy;
-                            pWGInfo[WGNum].s[2] = scaleinfo[z].imgoff;
-                            memcpy(&(pWGInfo[WGNum].s[3]),&(scaleinfo[z].factor),sizeof(float));
-                            WGNum++;
-                        }
-                    }
-                }
-                openCLSafeCall(clEnqueueUnmapMemObject(getClCommandQueue(oclWGInfo.clCxt),(cl_mem)oclWGInfo.datastart,pWGInfo,0,0,0));
-                pWGInfo = NULL;
-            }
+        openCLReadBuffer( gsum.clCxt, candidatebuffer, candidate, 4 * sizeof(int)*outputsz );
 
-            // setup global sizes to have linear array of workgroups with WGNum size
-            globalThreads[0] = localThreads[0]*WGNum;
-            globalThreads[1] = localThreads[1];
-            globalThreads[2] = 1;
-
-#define NODE_SIZE 12
-            // pack node info to have less memory loads
-            oclMat  oclNodesPK(1,sizeof(cl_int) * NODE_SIZE * nodenum,CV_8U);
-            {
-                cl_int  status;
-                cl_int* pNodesPK = (cl_int*)clEnqueueMapBuffer(getClCommandQueue(oclNodesPK.clCxt),(cl_mem)oclNodesPK.datastart,true,CL_MAP_WRITE, 0, oclNodesPK.step, 0,0,0,&status);
-                openCLVerifyCall(status);
-                //use known local data stride to precalulate indexes
-                int DATA_SIZE_X = (localThreads[0]+cascade->orig_window_size.width);
-                // check that maximal value is less than maximal unsigned short
-                assert(DATA_SIZE_X*cascade->orig_window_size.height+cascade->orig_window_size.width < USHRT_MAX);
-                for(int i = 0;i<nodenum;++i)
-                {//process each node from classifier
-                    struct NodePK
-                    {
-                        unsigned short  slm_index[3][4];
-                        float           weight[3];
-                        float           threshold;
-                        float           alpha[2];
-                    };
-                    struct NodePK * pOut = (struct NodePK *)(pNodesPK + NODE_SIZE*i);
-                    for(int k=0;k<3;++k)
-                    {// calc 4 short indexes in shared local mem for each rectangle instead of 2 (x,y) pair.
-                        int* p = &(node[i].p[k][0]);
-                        pOut->slm_index[k][0] = (unsigned short)(p[1]*DATA_SIZE_X+p[0]);
-                        pOut->slm_index[k][1] = (unsigned short)(p[1]*DATA_SIZE_X+p[2]);
-                        pOut->slm_index[k][2] = (unsigned short)(p[3]*DATA_SIZE_X+p[0]);
-                        pOut->slm_index[k][3] = (unsigned short)(p[3]*DATA_SIZE_X+p[2]);
-                    }
-                    //store used float point values for each node
-                    pOut->weight[0] = node[i].weight[0];
-                    pOut->weight[1] = node[i].weight[1];
-                    pOut->weight[2] = node[i].weight[2];
-                    pOut->threshold = node[i].threshold;
-                    pOut->alpha[0] = node[i].alpha[0];
-                    pOut->alpha[1] = node[i].alpha[1];
-                }
-                openCLSafeCall(clEnqueueUnmapMemObject(getClCommandQueue(oclNodesPK.clCxt),(cl_mem)oclNodesPK.datastart,pNodesPK,0,0,0));
-                pNodesPK = NULL;
-            }
-            // add 2 additional buffers (WGinfo and packed nodes) as 2 last args
-            args.push_back ( make_pair(sizeof(cl_mem) , (void *)&oclNodesPK.datastart ));
-            args.push_back ( make_pair(sizeof(cl_mem) , (void *)&oclWGInfo.datastart ));
-
-            //form build options for kernel
-            string  options = "-D PACKED_CLASSIFIER";
-            options += format(" -D NODE_SIZE=%d",NODE_SIZE);
-            options += format(" -D WND_SIZE_X=%d",cascade->orig_window_size.width);
-            options += format(" -D WND_SIZE_Y=%d",cascade->orig_window_size.height);
-            options += format(" -D STUMP_BASED=%d",gcascade->is_stump_based);
-            options += format(" -D LSx=%d",localThreads[0]);
-            options += format(" -D LSy=%d",localThreads[1]);
-            options += format(" -D SPLITNODE=%d",splitnode);
-            options += format(" -D SPLITSTAGE=%d",splitstage);
-            options += format(" -D OUTPUTSZ=%d",outputsz);
-
-            // init candiate global count by 0
-            int pattern = 0;
-            openCLSafeCall(clEnqueueWriteBuffer(qu, candidatebuffer, 1, 0, 1 * sizeof(pattern),&pattern, 0, NULL, NULL));
-            // execute face detector
-            openCLExecuteKernel(gsum.clCxt, &haarobjectdetect, "gpuRunHaarClassifierCascadePacked", globalThreads, localThreads, args, -1, -1, options.c_str());
-            //read candidate buffer back and put it into host list
-            openCLReadBuffer( gsum.clCxt, candidatebuffer, candidate, 4 * sizeof(int)*outputsz );
-            assert(candidate[0]<outputsz);
-            //printf("candidate[0]=%d\n",candidate[0]);
-            for(int i = 1; i <= candidate[0]; i++)
-            {
-                allCandidates.push_back(Rect(candidate[4 * i], candidate[4 * i + 1],candidate[4 * i + 2], candidate[4 * i + 3]));
-            }
-        }
-        else
-        {
-            const char * build_options = gcascade->is_stump_based ? "-D STUMP_BASED=1" : "-D STUMP_BASED=0";
-
-            openCLExecuteKernel(gsum.clCxt, &haarobjectdetect, "gpuRunHaarClassifierCascade", globalThreads, localThreads, args, -1, -1, build_options);
-
-            openCLReadBuffer( gsum.clCxt, candidatebuffer, candidate, 4 * sizeof(int)*outputsz );
-
-            for(int i = 0; i < outputsz; i++)
-                if(candidate[4 * i + 2] != 0)
-                    allCandidates.push_back(Rect(candidate[4 * i], candidate[4 * i + 1],
-                    candidate[4 * i + 2], candidate[4 * i + 3]));
-        }
+        for(int i = 0; i < outputsz; i++)
+            if(candidate[4 * i + 2] != 0)
+                allCandidates.push_back(Rect(candidate[4 * i], candidate[4 * i + 1],
+                candidate[4 * i + 2], candidate[4 * i + 3]));
 
         free(scaleinfo);
         free(candidate);
@@ -1032,7 +940,7 @@ CvSeq *cv::ocl::OclCascadeClassifier::oclHaarDetectObjects( oclMat &gimg, CvMemS
             loopcount = 1;
             n_factors = 1;
             sizev.push_back(minSize);
-            scalev.push_back( std::min(cvRound(minSize.width / winsize0.width), cvRound(minSize.height / winsize0.height)) );
+            scalev.push_back( min(cvRound(minSize.width / winsize0.width), cvRound(minSize.height / winsize0.height)) );
 
         }
         detect_piramid_info *scaleinfo = (detect_piramid_info *)malloc(sizeof(detect_piramid_info) * loopcount);
@@ -1041,7 +949,7 @@ CvSeq *cv::ocl::OclCascadeClassifier::oclHaarDetectObjects( oclMat &gimg, CvMemS
         int grp_per_CU = 12;
         size_t blocksize = 8;
         size_t localThreads[3] = { blocksize, blocksize , 1 };
-        size_t globalThreads[3] = { grp_per_CU *gsum.clCxt->getDeviceInfo().maxComputeUnits *localThreads[0],
+        size_t globalThreads[3] = { grp_per_CU *gsum.clCxt->computeUnits() *localThreads[0],
                                     localThreads[1], 1 };
         int outputsz = 256 * globalThreads[0] / localThreads[0];
         int nodenum = (datasize - sizeof(GpuHidHaarClassifierCascade) -
@@ -1059,11 +967,11 @@ CvSeq *cv::ocl::OclCascadeClassifier::oclHaarDetectObjects( oclMat &gimg, CvMemS
         {
             sz = sizev[i];
             factor = scalev[i];
-            double ystep = std::max(2., factor);
-            int equRect_x = cvRound(factor * gcascade->p0);
-            int equRect_y = cvRound(factor * gcascade->p1);
-            int equRect_w = cvRound(factor * gcascade->p3);
-            int equRect_h = cvRound(factor * gcascade->p2);
+            int ystep = cvRound(std::max(2., factor));
+            int equRect_x = (int)(factor * gcascade->p0 + 0.5);
+            int equRect_y = (int)(factor * gcascade->p1 + 0.5);
+            int equRect_w = (int)(factor * gcascade->p3 + 0.5);
+            int equRect_h = (int)(factor * gcascade->p2 + 0.5);
             p[i].s[0] = equRect_x;
             p[i].s[1] = equRect_y;
             p[i].s[2] = equRect_x + equRect_w;
@@ -1186,28 +1094,6 @@ CvSeq *cv::ocl::OclCascadeClassifier::oclHaarDetectObjects( oclMat &gimg, CvMemS
     return result_seq;
 }
 
-
-struct getRect
-{
-    Rect operator()(const CvAvgComp &e) const
-    {
-        return e.rect;
-    }
-};
-
-void cv::ocl::OclCascadeClassifier::detectMultiScale(oclMat &gimg, CV_OUT std::vector<cv::Rect>& faces,
-                                                        double scaleFactor, int minNeighbors, int flags,
-                                                        Size minSize, Size maxSize)
-{
-    CvSeq* _objects;
-    MemStorage storage(cvCreateMemStorage(0));
-    _objects = oclHaarDetectObjects(gimg, storage, scaleFactor, minNeighbors, flags, minSize, maxSize);
-    vector<CvAvgComp> vecAvgComp;
-    Seq<CvAvgComp>(_objects).copyTo(vecAvgComp);
-    faces.resize(vecAvgComp.size());
-    std::transform(vecAvgComp.begin(), vecAvgComp.end(), faces.begin(), getRect());
-}
-
 struct OclBuffers
 {
     cl_mem stagebuffer;
@@ -1219,6 +1105,13 @@ struct OclBuffers
     cl_mem newnodebuffer;
 };
 
+struct getRect
+{
+    Rect operator()(const CvAvgComp &e) const
+    {
+        return e.rect;
+    }
+};
 
 void cv::ocl::OclCascadeClassifierBuf::detectMultiScale(oclMat &gimg, CV_OUT std::vector<cv::Rect>& faces,
                                                         double scaleFactor, int minNeighbors, int flags,
@@ -1227,7 +1120,7 @@ void cv::ocl::OclCascadeClassifierBuf::detectMultiScale(oclMat &gimg, CV_OUT std
     int blocksize = 8;
     int grp_per_CU = 12;
     size_t localThreads[3] = { blocksize, blocksize, 1 };
-    size_t globalThreads[3] = { grp_per_CU * cv::ocl::Context::getContext()->getDeviceInfo().maxComputeUnits *localThreads[0],
+    size_t globalThreads[3] = { grp_per_CU * cv::ocl::Context::getContext()->computeUnits() *localThreads[0],
         localThreads[1],
         1 };
     int outputsz = 256 * globalThreads[0] / localThreads[0];
@@ -1255,13 +1148,14 @@ void cv::ocl::OclCascadeClassifierBuf::detectMultiScale(oclMat &gimg, CV_OUT std
     }
 
     int *candidate;
-    cl_command_queue qu = getClCommandQueue(Context::getContext());
+    cl_command_queue qu = reinterpret_cast<cl_command_queue>(Context::getContext()->oclCommandQueue());
     if( (flags & CV_HAAR_SCALE_IMAGE) )
     {
         int indexy = 0;
         CvSize sz;
 
         cv::Rect roi, roi2;
+        cv::Mat imgroi, imgroisq;
         cv::ocl::oclMat resizeroi, gimgroi, gimgroisq;
 
         for( int i = 0; i < m_loopcount; i++ )
@@ -1446,7 +1340,7 @@ void cv::ocl::OclCascadeClassifierBuf::Init(const int rows, const int cols,
     GpuHidHaarStageClassifier    *stage;
     GpuHidHaarClassifier         *classifier;
     GpuHidHaarTreeNode           *node;
-    cl_command_queue qu = getClCommandQueue(Context::getContext());
+    cl_command_queue qu = reinterpret_cast<cl_command_queue>(Context::getContext()->oclCommandQueue());
     if( (flags & CV_HAAR_SCALE_IMAGE) )
     {
         gcascade   = (GpuHidHaarClassifierCascade *)(cascade->hid_cascade);
@@ -1564,7 +1458,7 @@ void cv::ocl::OclCascadeClassifierBuf::CreateFactorRelatedBufs(
             gimg1.release();
             gsum.release();
             gsqsum.release();
-        }
+        } 
         else if (!(m_flags & CV_HAAR_SCALE_IMAGE) && (flags & CV_HAAR_SCALE_IMAGE))
         {
             openCLSafeCall(clReleaseMemObject(((OclBuffers *)buffers)->newnodebuffer));
@@ -1582,7 +1476,7 @@ void cv::ocl::OclCascadeClassifierBuf::CreateFactorRelatedBufs(
             {
                 return;
             }
-        }
+        } 
         else
         {
             if (fabs(m_scaleFactor - scaleFactor) < 1e-6
@@ -1611,7 +1505,7 @@ void cv::ocl::OclCascadeClassifierBuf::CreateFactorRelatedBufs(
     CvSize sz;
     CvSize winSize0 = oldCascade->orig_window_size;
     detect_piramid_info *scaleinfo;
-    cl_command_queue qu = getClCommandQueue(Context::getContext());
+    cl_command_queue qu = reinterpret_cast<cl_command_queue>(Context::getContext()->oclCommandQueue());
     if (flags & CV_HAAR_SCALE_IMAGE)
     {
         for(factor = 1.f;; factor *= scaleFactor)
@@ -1676,7 +1570,7 @@ void cv::ocl::OclCascadeClassifierBuf::CreateFactorRelatedBufs(
         {
             loopcount = 1;
             sizev.push_back(minSize);
-            scalev.push_back( std::min(cvRound(minSize.width / winSize0.width), cvRound(minSize.height / winSize0.height)) );
+            scalev.push_back( min(cvRound(minSize.width / winSize0.width), cvRound(minSize.height / winSize0.height)) );
         }
 
         ((OclBuffers *)buffers)->pbuffer = openCLCreateBuffer(cv::ocl::Context::getContext(), CL_MEM_READ_ONLY,
@@ -1691,9 +1585,9 @@ void cv::ocl::OclCascadeClassifierBuf::CreateFactorRelatedBufs(
         {
             sz = sizev[i];
             factor = scalev[i];
-            double ystep = cv::max(2.,factor);
-            int width = cvRound((cols - 1 - sz.width  + ystep - 1) / ystep);
-            int height = cvRound((rows - 1 - sz.height + ystep - 1) / ystep);
+            int ystep = cvRound(std::max(2., factor));
+            int width = (cols - 1 - sz.width  + ystep - 1) / ystep;
+            int height = (rows - 1 - sz.height + ystep - 1) / ystep;
             int grpnumperline = (width + localThreads[0] - 1) / localThreads[0];
             int totalgrp = ((height + localThreads[1] - 1) / localThreads[1]) * grpnumperline;
 

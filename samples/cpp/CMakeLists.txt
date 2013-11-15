@@ -32,11 +32,11 @@ if(BUILD_EXAMPLES AND OCV_DEPENDENCIES_FOUND)
     if("${srcs}" MATCHES "tutorial_code")
       set(sample_kind tutorial)
       set(sample_KIND TUTORIAL)
-      set(sample_subfolder "tutorials")
+      set(sample_folder "samples//tutorials")
     else()
       set(sample_kind example)
       set(sample_KIND EXAMPLE)
-      set(sample_subfolder "cpp")
+      set(sample_folder "samples//cpp")
     endif()
 
     set(the_target "${sample_kind}_${name}")
@@ -52,7 +52,7 @@ if(BUILD_EXAMPLES AND OCV_DEPENDENCIES_FOUND)
       PROJECT_LABEL "(${sample_KIND}) ${name}")
 
     if(ENABLE_SOLUTION_FOLDERS)
-      set_target_properties(${the_target} PROPERTIES FOLDER "samples/${sample_subfolder}")
+      set_target_properties(${the_target} PROPERTIES FOLDER "${sample_folder}")
     endif()
 
     if(WIN32)
@@ -60,7 +60,7 @@ if(BUILD_EXAMPLES AND OCV_DEPENDENCIES_FOUND)
         set_target_properties(${the_target} PROPERTIES LINK_FLAGS "/NODEFAULTLIB:atlthunk.lib /NODEFAULTLIB:atlsd.lib /DEBUG")
       endif()
       install(TARGETS ${the_target}
-              RUNTIME DESTINATION "${OPENCV_SAMPLES_BIN_INSTALL_PATH}/${sample_subfolder}" COMPONENT main)
+              RUNTIME DESTINATION "${sample_folder}" COMPONENT main)
     endif()
   ENDMACRO()
 
@@ -86,3 +86,4 @@ if (INSTALL_C_EXAMPLES AND NOT WIN32)
           DESTINATION share/OpenCV/samples/cpp
           PERMISSIONS OWNER_READ GROUP_READ WORLD_READ)
 endif()
+

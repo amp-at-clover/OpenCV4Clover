@@ -97,7 +97,7 @@ public class OpenCVTestCase extends TestCase {
         super.setUp();
 
         try {
-            System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+            System.loadLibrary("opencv_java");
         } catch (SecurityException e) {
             System.out.println(e.toString());
             System.exit(-1);

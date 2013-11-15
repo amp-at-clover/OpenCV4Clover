@@ -356,3 +356,4 @@ _exit_:
 }
 
 TEST(Imgproc_ApproxPoly, accuracy) { CV_ApproxPolyTest test; test.safe_run(); }
+

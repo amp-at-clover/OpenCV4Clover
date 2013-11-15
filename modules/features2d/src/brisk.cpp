@@ -525,11 +525,7 @@ BRISK::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& keypoi
   bool doOrientation=true;
   if (useProvidedKeypoints)
     doOrientation = false;
-
-  // If the user specified cv::noArray(), this will yield false. Otherwise it will return true.
-  bool doDescriptors = _descriptors.needed();
-
-  computeDescriptorsAndOrOrientation(_image, _mask, keypoints, _descriptors, doDescriptors, doOrientation,
+  computeDescriptorsAndOrOrientation(_image, _mask, keypoints, _descriptors, true, doOrientation,
                                        useProvidedKeypoints);
 }
 

@@ -72,3 +72,5 @@ PERF_TEST_P( Image_KernelSize, GaborFilter2d,
 
     SANITY_CHECK(filteredImage, 1e-3);
 }
+
+

@@ -76,3 +76,4 @@ Draws keypoints.
     :param color: Color of keypoints.
 
     :param flags: Flags setting drawing features. Possible  ``flags``  bit values are defined by  ``DrawMatchesFlags``. See details above in  :ocv:func:`drawMatches` .
+

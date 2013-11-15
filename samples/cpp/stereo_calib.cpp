@@ -401,3 +401,4 @@ int main(int argc, char** argv)
     StereoCalib(imagelist, boardSize, true, showRectified);
     return 0;
 }
+

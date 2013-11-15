@@ -181,3 +181,5 @@ CvBlobTrackGen* cvCreateModuleBlobTrackGen1()
 {
     return (CvBlobTrackGen*) new CvBlobTrackGen1(0);
 }
+
+

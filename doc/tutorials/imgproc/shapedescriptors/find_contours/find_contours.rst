@@ -104,3 +104,4 @@ Result
 
    .. |contour_1|  image:: images/Find_Contours_Result.jpg
                      :align: middle
+

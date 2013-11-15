@@ -26,7 +26,7 @@
 //
 //   * Redistribution's in binary form must reproduce the above copyright notice,
 //     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
+//     and/or other oclMaterials provided with the distribution.
 //
 //   * The name of the copyright holders may not be used to endorse or promote products
 //     derived from this software without specific prior written permission.
@@ -44,42 +44,58 @@
 //
 //M*/
 
-#include "perf_precomp.hpp"
-
+#include "precomp.hpp"
 ///////////// StereoMatchBM ////////////////////////
-
-PERF_TEST(StereoMatchBMFixture, StereoMatchBM)
+PERFTEST(StereoMatchBM)
 {
-    Mat left_image = imread(getDataPath("gpu/stereobm/aloe-L.png"), cv::IMREAD_GRAYSCALE);
-    Mat right_image = imread(getDataPath("gpu/stereobm/aloe-R.png"), cv::IMREAD_GRAYSCALE);
+	Mat left_image = imread(abspath("aloeL.jpg"), cv::IMREAD_GRAYSCALE);
+	Mat right_image = imread(abspath("aloeR.jpg"), cv::IMREAD_GRAYSCALE);
+	Mat disp,dst;
+	ocl::oclMat d_left, d_right,d_disp;
+	int n_disp= 128;
+	int winSize =19;
 
-    ASSERT_TRUE(!left_image.empty()) << "no input image";
-    ASSERT_TRUE(!right_image.empty()) << "no input image";
-    ASSERT_TRUE(right_image.size() == left_image.size());
-    ASSERT_TRUE(right_image.size() == left_image.size());
+	SUBTEST << left_image.cols << 'x' << left_image.rows << "; aloeL.jpg ;"<< right_image.cols << 'x' << right_image.rows << "; aloeR.jpg ";
 
-    const int n_disp = 128, winSize = 19;
-    Mat disp(left_image.size(), CV_16SC1);
+	StereoBM bm(0, n_disp, winSize);
+	bm(left_image, right_image, dst);
 
-    declare.in(left_image, right_image).out(disp);
+	CPU_ON;
+	bm(left_image, right_image, dst);
+	CPU_OFF;
 
-    if (RUN_OCL_IMPL)
-    {
-        ocl::oclMat oclLeft(left_image), oclRight(right_image),
-                oclDisp(left_image.size(), CV_16SC1);
-        ocl::StereoBM_OCL oclBM(0, n_disp, winSize);
+	d_left.upload(left_image);
+	d_right.upload(right_image);
 
-        OCL_TEST_CYCLE() oclBM(oclLeft, oclRight, oclDisp);
-    }
-    else if (RUN_PLAIN_IMPL)
-    {
-        StereoBM bm(0, n_disp, winSize);
+	ocl::StereoBM_OCL d_bm(0, n_disp, winSize);
 
-        TEST_CYCLE() bm(left_image, right_image, disp);
-    }
-    else
-        OCL_PERF_ELSE
+	WARMUP_ON;
+	d_bm(d_left, d_right, d_disp);
+	WARMUP_OFF;
 
-    int value = 0;
-    SANITY_CHECK(value);
+    cv::Mat ocl_mat;
+    d_disp.download(ocl_mat);
+    ocl_mat.convertTo(ocl_mat, dst.type());
+
+	GPU_ON;
+	d_bm(d_left, d_right, d_disp);
+	GPU_OFF;
+
+	GPU_FULL_ON;
+	d_left.upload(left_image);
+	d_right.upload(right_image);
+	d_bm(d_left, d_right, d_disp);
+	d_disp.download(disp);
+	GPU_FULL_OFF;
+    
+    TestSystem::instance().setAccurate(-1, 0.);
 }
+
+
+
+
+
+
+
+
+	

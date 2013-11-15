@@ -193,3 +193,4 @@ void CV_Affine3D_EstTest::run( int /* start_from */)
 }
 
 TEST(Calib3d_EstimateAffineTransform, accuracy) { CV_Affine3D_EstTest test; test.safe_run(); }
+

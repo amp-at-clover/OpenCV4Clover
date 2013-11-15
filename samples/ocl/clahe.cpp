@@ -9,13 +9,15 @@ using namespace std;
 Ptr<CLAHE> pFilter;
 int tilesize;
 int cliplimit;
+string outfile;
 
 static void TSize_Callback(int pos)
 {
     if(pos==0)
+    {
         pFilter->setTilesGridSize(Size(1,1));
-    else
-        pFilter->setTilesGridSize(Size(tilesize,tilesize));
+    }
+    pFilter->setTilesGridSize(Size(tilesize,tilesize));
 }
 
 static void Clip_Callback(int)
@@ -29,64 +31,62 @@ int main(int argc, char** argv)
         "{ i | input   |                    | specify input image }"
         "{ c | camera  |    0               | specify camera id   }"
         "{ s | use_cpu |    false           | use cpu algorithm   }"
-        "{ o | output  | clahe_output.jpg   | specify output save path}"
-        "{ h | help    | false              | print help message }";
+        "{ o | output  | clahe_output.jpg   | specify output save path}";
 
-    cv::CommandLineParser cmd(argc, argv, keys);
-    if (cmd.get<bool>("help"))
-    {
-        cout << "Usage : clahe [options]" << endl;
-        cout << "Available options:" << endl;
-        cmd.printParams();
-        return EXIT_SUCCESS;
-    }
-
-    string infile = cmd.get<string>("i"), outfile = cmd.get<string>("o");
+    CommandLineParser cmd(argc, argv, keys);
+    string infile = cmd.get<string>("i");
+    outfile = cmd.get<string>("o");
     int camid = cmd.get<int>("c");
     bool use_cpu = cmd.get<bool>("s");
     CvCapture* capture = 0;
+    bool running = true;
 
     namedWindow("CLAHE");
     createTrackbar("Tile Size", "CLAHE", &tilesize, 32, (TrackbarCallback)TSize_Callback);
     createTrackbar("Clip Limit", "CLAHE", &cliplimit, 20, (TrackbarCallback)Clip_Callback);
-
     Mat frame, outframe;
-    ocl::oclMat d_outframe, d_frame;
-
+    ocl::oclMat d_outframe;
+    
     int cur_clip;
     Size cur_tilesize;
-    pFilter = use_cpu ? createCLAHE() : ocl::createCLAHE();
-
+    if(use_cpu)
+    {
+        pFilter = createCLAHE();
+    }
+    else
+    {
+        pFilter = ocl::createCLAHE();
+    }
     cur_clip = (int)pFilter->getClipLimit();
     cur_tilesize = pFilter->getTilesGridSize();
     setTrackbarPos("Tile Size", "CLAHE", cur_tilesize.width);
     setTrackbarPos("Clip Limit", "CLAHE", cur_clip);
-
     if(infile != "")
     {
         frame = imread(infile);
         if(frame.empty())
         {
             cout << "error read image: " << infile << endl;
-            return EXIT_FAILURE;
+            return -1;
         }
     }
     else
+    {
         capture = cvCaptureFromCAM(camid);
-
+    }
     cout << "\nControls:\n"
          << "\to - save output image\n"
          << "\tESC - exit\n";
-
-    for (;;)
+    while(running)
     {
         if(capture)
             frame = cvQueryFrame(capture);
         else
             frame = imread(infile);
         if(frame.empty())
+        {
             continue;
-
+        }
         if(use_cpu)
         {
             cvtColor(frame, frame, COLOR_BGR2GRAY);
@@ -94,18 +94,15 @@ int main(int argc, char** argv)
         }
         else
         {
-            ocl::cvtColor(d_frame = frame, d_outframe, COLOR_BGR2GRAY);
+            ocl::oclMat d_frame(frame);
+            ocl::cvtColor(d_frame, d_outframe, COLOR_BGR2GRAY);
             pFilter->apply(d_outframe, d_outframe);
             d_outframe.download(outframe);
         }
-
         imshow("CLAHE", outframe);
-
         char key = (char)cvWaitKey(3);
-        if(key == 'o')
-            imwrite(outfile, outframe);
-        else if(key == 27)
-            break;
+        if(key == 'o') imwrite(outfile, outframe);
+        else if(key == 27) running = false;
     }
-    return EXIT_SUCCESS;
+    return 0;
 }

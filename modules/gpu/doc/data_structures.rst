@@ -386,3 +386,4 @@ Class that enables getting ``cudaStream_t`` from :ocv:class:`gpu::Stream` and is
     {
         CV_EXPORTS static cudaStream_t getStream(const Stream& stream);
     };
+

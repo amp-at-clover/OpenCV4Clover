@@ -199,3 +199,4 @@ inline MouthFaceTemplate::MouthFaceTemplate(long lNumber,CvRect rect,double dEye
 
 
 #endif//__FACETEMPLATE_H__
+

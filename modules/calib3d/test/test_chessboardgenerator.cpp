@@ -329,3 +329,4 @@ Mat cv::ChessBoardGenerator::operator ()(const Mat& bg, const Mat& camMat, const
     return generateChessBoard(bg, camMat, distCoeffs, zero, pb1, pb2,
         squareSize.width, squareSize.height,  pts3d, corners);
 }
+

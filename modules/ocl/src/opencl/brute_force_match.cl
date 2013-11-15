@@ -17,7 +17,6 @@
 // @Authors
 //    Nathan, liujun@multicorewareinc.com
 //    Peng Xiao, pengxiao@outlook.com
-//    Baichuan Su, baichuan@multicorewareinc.com
 //
 // Redistribution and use in source and binary forms, with or without modification,
 // are permitted provided that the following conditions are met:
@@ -27,7 +26,7 @@
 //
 //   * Redistribution's in binary form must reproduce the above copyright notice,
 //     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
+//     and/or other oclMaterials provided with the distribution.
 //
 //   * The name of the copyright holders may not be used to endorse or promote products
 //     derived from this software without specific prior written permission.
@@ -64,7 +63,7 @@
 #endif
 
 //http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-static int bit1Count(int v)
+int bit1Count(int v)
 {
     v = v - ((v >> 1) & 0x55555555);                    // reuse input as temporary
     v = (v & 0x33333333) + ((v >> 2) & 0x33333333);     // temp
@@ -95,7 +94,7 @@ typedef int result_type;
 #define DIST_RES(x) (x)
 #endif
 
-static result_type reduce_block(
+result_type reduce_block(
     __local value_type *s_query,
     __local value_type *s_train,
     int lidx,
@@ -113,25 +112,7 @@ static result_type reduce_block(
     return DIST_RES(result);
 }
 
-static result_type reduce_block_match(
-    __local value_type *s_query,
-    __local value_type *s_train,
-    int lidx,
-    int lidy
-    )
-{
-    result_type result = 0;
-    #pragma unroll
-    for (int j = 0 ; j < BLOCK_SIZE ; j++)
-    {
-        result += DIST(
-            s_query[lidy * BLOCK_SIZE + j],
-            s_train[j * BLOCK_SIZE + lidx]);
-    }
-    return (result);
-}
-
-static result_type reduce_multi_block(
+result_type reduce_multi_block(
     __local value_type *s_query,
     __local value_type *s_train,
     int block_index,
@@ -147,7 +128,7 @@ static result_type reduce_multi_block(
             s_query[lidy * MAX_DESC_LEN + block_index * BLOCK_SIZE + j],
             s_train[j * BLOCK_SIZE + lidx]);
     }
-    return result;
+    return DIST_RES(result);
 }
 
 /* 2dim launch, global size: dim0 is (query rows + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE, dim1 is BLOCK_SIZE
@@ -187,6 +168,7 @@ __kernel void BruteForceMatch_UnrollMatch(
     int myBestTrainIdx = -1;
 
     // loopUnrolledCached to find the best trainIdx and best distance.
+    volatile int imgIdx = 0;
     for (int t = 0, endt = (train_rows + BLOCK_SIZE - 1) / BLOCK_SIZE; t < endt; t++)
     {
         result_type result = 0;
@@ -205,12 +187,11 @@ __kernel void BruteForceMatch_UnrollMatch(
             barrier(CLK_LOCAL_MEM_FENCE);
         }
 
-        result = DIST_RES(result);
-
         int trainIdx = t * BLOCK_SIZE + lidx;
 
         if (queryIdx < query_rows && trainIdx < train_rows && result < myBestDistance/* && mask(queryIdx, trainIdx)*/)
         {
+            //bestImgIdx = imgIdx;
             myBestDistance = result;
             myBestTrainIdx = trainIdx;
         }
@@ -291,17 +272,16 @@ __kernel void BruteForceMatch_Match(
 
             barrier(CLK_LOCAL_MEM_FENCE);
 
-            result += reduce_block_match(s_query, s_train, lidx, lidy);
+            result += reduce_block(s_query, s_train, lidx, lidy);
 
             barrier(CLK_LOCAL_MEM_FENCE);
         }
-
-        result = DIST_RES(result);
 
         const int trainIdx = t * BLOCK_SIZE + lidx;
 
         if (queryIdx < query_rows && trainIdx < train_rows && result < myBestDistance /*&& mask(queryIdx, trainIdx)*/)
         {
+            //myBestImgidx = imgIdx;
             myBestDistance = result;
             myBestTrainIdx = trainIdx;
         }
@@ -387,10 +367,11 @@ __kernel void BruteForceMatch_RadiusUnrollMatch(
     if (queryIdx < query_rows && trainIdx < train_rows &&
         convert_float(result) < maxDistance/* && mask(queryIdx, trainIdx)*/)
     {
-        int ind = atom_inc(nMatches + queryIdx/*, (unsigned int) -1*/);
+        unsigned int ind = atom_inc(nMatches + queryIdx/*, (unsigned int) -1*/);
 
         if(ind < bestTrainIdx_cols)
         {
+            //bestImgIdx = imgIdx;
             bestTrainIdx[queryIdx * (ostep / sizeof(int)) + ind] = trainIdx;
             bestDistance[queryIdx * (ostep / sizeof(float)) + ind] = result;
         }
@@ -444,13 +425,14 @@ __kernel void BruteForceMatch_RadiusMatch(
         barrier(CLK_LOCAL_MEM_FENCE);
     }
 
-    if (queryIdx < query_rows && trainIdx < train_rows &&
+    if (queryIdx < query_rows && trainIdx < train_rows && 
         convert_float(result) < maxDistance/* && mask(queryIdx, trainIdx)*/)
     {
-        int ind = atom_inc(nMatches + queryIdx);
+        unsigned int ind = atom_inc(nMatches + queryIdx);
 
         if(ind < bestTrainIdx_cols)
         {
+            //bestImgIdx = imgIdx;
             bestTrainIdx[queryIdx * (ostep / sizeof(int)) + ind] = trainIdx;
             bestDistance[queryIdx * (ostep / sizeof(float)) + ind] = result;
         }
@@ -493,6 +475,7 @@ __kernel void BruteForceMatch_knnUnrollMatch(
     int myBestTrainIdx2 = -1;
 
     //loopUnrolledCached
+    volatile int imgIdx = 0;
     for (int t = 0 ; t < (train_rows + BLOCK_SIZE - 1) / BLOCK_SIZE ; t++)
     {
         result_type result = 0;
@@ -509,8 +492,6 @@ __kernel void BruteForceMatch_knnUnrollMatch(
 
             barrier(CLK_LOCAL_MEM_FENCE);
         }
-
-        result = DIST_RES(result);
 
         const int trainIdx = t * BLOCK_SIZE + lidx;
 
@@ -650,12 +631,10 @@ __kernel void BruteForceMatch_knnMatch(
 
             barrier(CLK_LOCAL_MEM_FENCE);
 
-            result += reduce_block_match(s_query, s_train, lidx, lidy);
+            result += reduce_block(s_query, s_train, lidx, lidy);
 
             barrier(CLK_LOCAL_MEM_FENCE);
         }
-
-        result = DIST_RES(result);
 
         const int trainIdx = t * BLOCK_SIZE + lidx;
 
