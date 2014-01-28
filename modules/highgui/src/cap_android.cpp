@@ -355,7 +355,7 @@ bool CvCapture_Android::grabFrame()
         m_dataState = CVCAPTURE_ANDROID_STATE_NO_FRAME;//we will wait new frame
     }
 
-    while (m_dataState != CVCAPTURE_ANDROID_STATE_HAS_NEW_FRAME_UNGRABBED)
+    while(m_dataState != CVCAPTURE_ANDROID_STATE_HAS_NEW_FRAME_UNGRABBED)
     {
         m_waitingNextFrame = true;
         pthread_cond_wait(&m_nextFrameCond, &m_nextFrameMutex);
