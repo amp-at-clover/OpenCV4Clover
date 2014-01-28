@@ -158,6 +158,8 @@ public:
                 pthread_cond_broadcast(&m_capture->m_nextFrameCond);
                 pthread_mutex_unlock(&m_capture->m_nextFrameMutex);
             }
+            //LOGI("Got a new frame. %d read so far.",m_framesReceived);
+
             return true;
         }
         return false;
