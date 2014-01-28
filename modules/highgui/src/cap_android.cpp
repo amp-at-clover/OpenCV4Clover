@@ -154,12 +154,12 @@ public:
             if (m_capture->m_waitingNextFrame || m_capture->m_shouldAutoGrab)
             {
                 pthread_mutex_lock(&m_capture->m_nextFrameMutex);
-
                 m_capture->setFrame(buffer, bufferSize);
-
                 pthread_cond_broadcast(&m_capture->m_nextFrameCond);
                 pthread_mutex_unlock(&m_capture->m_nextFrameMutex);
             }
+            //LOGI("Got a new frame. %d read so far.",m_framesReceived);
+
             return true;
         }
         return false;
@@ -357,7 +357,7 @@ bool CvCapture_Android::grabFrame()
         m_dataState = CVCAPTURE_ANDROID_STATE_NO_FRAME;//we will wait new frame
     }
 
-    if (m_dataState != CVCAPTURE_ANDROID_STATE_HAS_NEW_FRAME_UNGRABBED)
+    while(m_dataState != CVCAPTURE_ANDROID_STATE_HAS_NEW_FRAME_UNGRABBED)
     {
         m_waitingNextFrame = true;
         pthread_cond_wait(&m_nextFrameCond, &m_nextFrameMutex);
