@@ -1,2 +1,0 @@
-/Users/arvind/tools/android-ndk-r9/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ar cr ../../lib/armeabi/libopencv_nonfree_pch_dephelp.a  CMakeFiles/opencv_nonfree_pch_dephelp.dir/opencv_nonfree_pch_dephelp.cxx.o
-/Users/arvind/tools/android-ndk-r9/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ranlib ../../lib/armeabi/libopencv_nonfree_pch_dephelp.a
