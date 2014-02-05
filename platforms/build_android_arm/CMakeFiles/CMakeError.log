@@ -1,0 +1,52 @@
+Determining if the include file io.h exists failed with the following output:
+Change Dir: /Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec3084464674/fast"
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTryCompileExec3084464674.dir/build.make CMakeFiles/cmTryCompileExec3084464674.dir/build
+/usr/local/Cellar/cmake/2.8.12.1/bin/cmake -E cmake_progress_report /Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec3084464674.dir/CheckIncludeFile.c.o
+/Users/arvind/tools/android-ndk-r9/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-gcc  -DANDROID -fexceptions -Wno-psabi --sysroot=/Users/arvind/tools/android-ndk-r9/platforms/android-8/arch-arm -fpic -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fdata-sections -ffunction-sections -Wa,--noexecstack    -fsigned-char -W -Wall -Werror=return-type -Werror=address -Werror=sequence-point -Wformat -Werror=format-security -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wundef -Winit-self -Wpointer-arith -Wshadow -Wno-narrowing -fdiagnostics-show-option -fomit-frame-pointer  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -isystem /Users/arvind/tools/android-ndk-r9/platforms/android-8/arch-arm/usr/include -isystem /Users/arvind/tools/android-ndk-r9/sources/cxx-stl/gnu-libstdc++/4.8/include -isystem /Users/arvind/tools/android-ndk-r9/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include    -o CMakeFiles/cmTryCompileExec3084464674.dir/CheckIncludeFile.c.o   -c /Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:16: fatal error: io.h: No such file or directory
+ #include <io.h>
+                ^
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTryCompileExec3084464674.dir/CheckIncludeFile.c.o] Error 1
+make: *** [cmTryCompileExec3084464674/fast] Error 2
+
+
+Determining if the function jbg_newlen exists failed with the following output:
+Change Dir: /Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec2677737452/fast"
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTryCompileExec2677737452.dir/build.make CMakeFiles/cmTryCompileExec2677737452.dir/build
+/usr/local/Cellar/cmake/2.8.12.1/bin/cmake -E cmake_progress_report /Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec2677737452.dir/CheckFunctionExists.c.o
+/Users/arvind/tools/android-ndk-r9/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-gcc  -DANDROID -fexceptions -Wno-psabi --sysroot=/Users/arvind/tools/android-ndk-r9/platforms/android-8/arch-arm -fpic -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fdata-sections -ffunction-sections -Wa,--noexecstack    -fsigned-char -W -Wall -Werror=return-type -Werror=address -Werror=sequence-point -Wformat -Werror=format-security -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wundef -Winit-self -Wpointer-arith -Wshadow -Wno-narrowing -fdiagnostics-show-option -fomit-frame-pointer -DCHECK_FUNCTION_EXISTS=jbg_newlen -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -isystem /Users/arvind/tools/android-ndk-r9/platforms/android-8/arch-arm/usr/include -isystem /Users/arvind/tools/android-ndk-r9/sources/cxx-stl/gnu-libstdc++/4.8/include -isystem /Users/arvind/tools/android-ndk-r9/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include    -o CMakeFiles/cmTryCompileExec2677737452.dir/CheckFunctionExists.c.o   -c /usr/local/Cellar/cmake/2.8.12.1/share/cmake/Modules/CheckFunctionExists.c
+/usr/local/Cellar/cmake/2.8.12.1/share/cmake/Modules/CheckFunctionExists.c:3:1: warning: function declaration isn't a prototype [-Wstrict-prototypes]
+ char CHECK_FUNCTION_EXISTS();
+ ^
+Linking C executable cmTryCompileExec2677737452
+/usr/local/Cellar/cmake/2.8.12.1/bin/cmake -E cmake_link_script CMakeFiles/cmTryCompileExec2677737452.dir/link.txt --verbose=1
+/Users/arvind/tools/android-ndk-r9/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-gcc  -fexceptions -Wno-psabi --sysroot=/Users/arvind/tools/android-ndk-r9/platforms/android-8/arch-arm -fpic -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fdata-sections -ffunction-sections -Wa,--noexecstack    -fsigned-char -W -Wall -Werror=return-type -Werror=address -Werror=sequence-point -Wformat -Werror=format-security -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wundef -Winit-self -Wpointer-arith -Wshadow -Wno-narrowing -fdiagnostics-show-option -fomit-frame-pointer -DCHECK_FUNCTION_EXISTS=jbg_newlen -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG   -Wl,--fix-cortex-a8 -Wl,--no-undefined -Wl,--gc-sections -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,-z,nocopyreloc CMakeFiles/cmTryCompileExec2677737452.dir/CheckFunctionExists.c.o -o cmTryCompileExec2677737452  -L/libs/armeabi-v7a -rdynamic  "/Users/arvind/tools/android-ndk-r9/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/libsupc++.a"
+CMakeFiles/cmTryCompileExec2677737452.dir/CheckFunctionExists.c.o:CheckFunctionExists.c:function main: error: undefined reference to 'jbg_newlen'
+collect2: error: ld returned 1 exit status
+make[1]: *** [cmTryCompileExec2677737452] Error 1
+make: *** [cmTryCompileExec2677737452/fast] Error 2
+
+
+Determining if the include file search.h exists failed with the following output:
+Change Dir: /Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/make "cmTryCompileExec695552840/fast"
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTryCompileExec695552840.dir/build.make CMakeFiles/cmTryCompileExec695552840.dir/build
+/usr/local/Cellar/cmake/2.8.12.1/bin/cmake -E cmake_progress_report /Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp/CMakeFiles 1
+Building C object CMakeFiles/cmTryCompileExec695552840.dir/CheckIncludeFile.c.o
+/Users/arvind/tools/android-ndk-r9/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-gcc  -DANDROID -fexceptions -Wno-psabi --sysroot=/Users/arvind/tools/android-ndk-r9/platforms/android-8/arch-arm -fpic -funwind-tables -finline-limit=64 -fsigned-char -no-canonical-prefixes -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -fdata-sections -ffunction-sections -Wa,--noexecstack    -fsigned-char -W -Wall -Werror=return-type -Werror=address -Werror=sequence-point -Wformat -Werror=format-security -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wundef -Winit-self -Wpointer-arith -Wshadow -Wno-narrowing -fdiagnostics-show-option -fomit-frame-pointer  -mthumb -fomit-frame-pointer -fno-strict-aliasing -O3 -DNDEBUG -isystem /Users/arvind/tools/android-ndk-r9/platforms/android-8/arch-arm/usr/include -isystem /Users/arvind/tools/android-ndk-r9/sources/cxx-stl/gnu-libstdc++/4.8/include -isystem /Users/arvind/tools/android-ndk-r9/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/include    -o CMakeFiles/cmTryCompileExec695552840.dir/CheckIncludeFile.c.o   -c /Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/CMakeFiles/CMakeTmp/CheckIncludeFile.c:1:20: fatal error: search.h: No such file or directory
+ #include <search.h>
+                    ^
+compilation terminated.
+make[1]: *** [CMakeFiles/cmTryCompileExec695552840.dir/CheckIncludeFile.c.o] Error 1
+make: *** [cmTryCompileExec695552840/fast] Error 2
+
+

@@ -1,0 +1,21 @@
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes.dex : \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/R$attr.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/R$drawable.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/R$id.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/R$layout.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/R$string.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/R$styleable.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/R.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/BuildConfig.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/R$attr.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/R$drawable.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/R$id.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/R$layout.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/R$string.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/R$styleable.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/R.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/Tutorial3Activity$1.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/Tutorial3Activity.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/classes/org/opencv/samples/tutorial3/Tutorial3View.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/dexedLibs/classes-4052c60046491010b8b4c17ad25d8027.jar \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/tutorial-3-cameracontrol/.build/bin/dexedLibs/annotations-dbfa1278c47936992e033ef27ff86f8d.jar \

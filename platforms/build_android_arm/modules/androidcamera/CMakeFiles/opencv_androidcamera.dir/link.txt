@@ -1,0 +1,2 @@
+/Users/arvind/tools/android-ndk-r9/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ar cr ../../lib/armeabi/libopencv_androidcamera.a  CMakeFiles/opencv_androidcamera.dir/src/camera_activity.cpp.o
+/Users/arvind/tools/android-ndk-r9/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/bin/arm-linux-androideabi-ranlib ../../lib/armeabi/libopencv_androidcamera.a

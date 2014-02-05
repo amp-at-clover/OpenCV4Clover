@@ -1,0 +1,21 @@
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes.dex : \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/R$attr.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/R$drawable.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/R$id.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/R$layout.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/R$string.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/R$styleable.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/R.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/BuildConfig.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/ColorBlobDetectionActivity$1.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/ColorBlobDetectionActivity.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/ColorBlobDetector.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/R$attr.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/R$drawable.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/R$id.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/R$layout.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/R$string.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/R$styleable.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/classes/org/opencv/samples/colorblobdetect/R.class \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/dexedLibs/classes-4052c60046491010b8b4c17ad25d8027.jar \
+/Users/arvind/Clover/OpenCV4Clover/platforms/build_android_arm/samples/android/color-blob-detection/.build/bin/dexedLibs/annotations-dbfa1278c47936992e033ef27ff86f8d.jar \

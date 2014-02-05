@@ -1,0 +1,9 @@
+# view res/layout/tutorial1_surface_view.xml #generated:7
+-keep class org.opencv.android.JavaCameraView { <init>(...); }
+
+# view res/layout/tutorial1_surface_view.xml #generated:15
+-keep class org.opencv.android.NativeCameraView { <init>(...); }
+
+# view AndroidManifest.xml #generated:12
+-keep class org.opencv.samples.tutorial1.Tutorial1Activity { <init>(...); }
+
